@@ -381,15 +381,15 @@ backend/
 ## Features & Requirements Checklist
 
 ### Phase 1: MVP
-- [ ] Family creation
-- [ ] Add family members with auth tokens
-- [ ] Database schema and PDO setup
-- [ ] Authentication via URL token
-- [ ] Create tasks with points
-- [ ] Claim tasks
-- [ ] Approve/Reject claims with score updates
-- [ ] Basic scoreboard
-- [ ] Rank calculation
+- [x] Family creation
+- [x] Add family members with auth tokens
+- [x] Database schema and PDO setup
+- [x] Authentication via URL token
+- [x] Create tasks with points
+- [x] Claim tasks
+- [x] Approve/Reject claims with score updates
+- [x] Basic scoreboard
+- [x] Rank calculation
 
 ### Phase 2: Enhancement
 - [ ] Task deletion
