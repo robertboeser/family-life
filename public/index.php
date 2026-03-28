@@ -36,7 +36,7 @@ declare(strict_types=1);
                         <form id="addMemberForm" class="mb-3">
                             <div class="row g-2">
                                 <div class="col-auto">
-                                    <input id="memberFamilyId" type="number" min="1" class="form-control" placeholder="Family ID" style="width: 100px;" required>
+                                    <input id="memberFamilyId" type="text" class="form-control" placeholder="Family ID" style="width: 150px;" required>
                                 </div>
                                 <div class="col">
                                     <input id="memberName" type="text" class="form-control" placeholder="Member name" required>

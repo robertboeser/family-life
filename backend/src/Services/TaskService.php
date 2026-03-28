@@ -14,7 +14,7 @@ final class TaskService
     {
     }
 
-    public function listByFamily(int $familyId): array
+    public function listByFamily(string $familyId): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT id, name, points, created_by, created_at
@@ -38,7 +38,7 @@ final class TaskService
         return $tasks;
     }
 
-    public function create(int $familyId, int $memberId, string $name, int $points): array
+    public function create(string $familyId, int $memberId, string $name, int $points): array
     {
         $stmt = $this->pdo->prepare(
             'INSERT INTO tasks (family_id, name, points, created_by, updated_at)
@@ -61,7 +61,7 @@ final class TaskService
         ];
     }
 
-    public function delete(int $familyId, int $memberId, int $taskId): array
+    public function delete(string $familyId, int $memberId, int $taskId): array
     {
         $taskStmt = $this->pdo->prepare(
             'SELECT id, family_id, created_by
@@ -72,7 +72,7 @@ final class TaskService
         $taskStmt->execute([':id' => $taskId]);
         $task = $taskStmt->fetch();
 
-        if ($task === false || (int)$task['family_id'] !== $familyId) {
+        if ($task === false || (string)$task['family_id'] !== $familyId) {
             throw new ApiException('Task not found', 404);
         }
 

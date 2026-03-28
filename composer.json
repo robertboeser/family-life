@@ -3,7 +3,8 @@
     "description": "Family gamification app backend",
     "type": "project",
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.0",
+        "robertboeser/robo-id": "^1.2"
     },
     "autoload": {
         "psr-4": {

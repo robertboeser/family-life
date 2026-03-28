@@ -45,15 +45,6 @@ $uri = '/' . trim($uri, '/');
 
 try {
 
-    if ($uri === '/rank-name' && $method === 'GET') {
-        $index = $validator->nonNegativeInt($_GET['index'] ?? null, 'index');
-
-        $responder->send([
-            'index' => $index,
-            'name' => $rankService->proceduralNameFromIndex($index)
-        ]);
-    }
-
     if ($uri === '/families' && $method === 'POST') {
         $body = $request->jsonBody();
         $name = $validator->requiredString($body, 'name');
@@ -62,8 +53,8 @@ try {
         $responder->send($payload, 201);
     }
 
-    if (preg_match('#^/families/(\d+)/members$#', $uri, $matches) === 1) {
-        $familyId = (int)$matches[1];
+    if (preg_match('#^/families/([^/]+)/members$#', $uri, $matches) === 1) {
+        $familyId = $matches[1];
 
         if ($method === 'GET') {
             $responder->send($familyService->listMembers($familyId));
@@ -91,7 +82,7 @@ try {
         $member = $authService->requireMember();
 
         if ($method === 'GET') {
-            $responder->send($taskService->listByFamily((int)$member['family_id']));
+            $responder->send($taskService->listByFamily((string)$member['family_id']));
         }
 
         if ($method === 'POST') {
@@ -99,7 +90,7 @@ try {
             $name = $validator->requiredString($body, 'name');
             $points = $validator->positiveInt($body, 'points');
 
-            $payload = $taskService->create((int)$member['family_id'], (int)$member['id'], $name, $points);
+            $payload = $taskService->create((string)$member['family_id'], (int)$member['id'], $name, $points);
             $responder->send($payload, 201);
         }
     }
@@ -109,7 +100,7 @@ try {
         $taskId = (int)$matches[1];
 
         try {
-            $payload = $taskService->delete((int)$member['family_id'], (int)$member['id'], $taskId);
+            $payload = $taskService->delete((string)$member['family_id'], (int)$member['id'], $taskId);
             $responder->send($payload);
         } catch (ApiException $exception) {
             $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -119,7 +110,7 @@ try {
     if ($uri === '/claims/mine' && $method === 'GET') {
         $member = $authService->requireMember();
 
-        $responder->send($claimService->listMine((int)$member['family_id'], (int)$member['id']));
+        $responder->send($claimService->listMine((string)$member['family_id'], (int)$member['id']));
     }
 
     if ($uri === '/claims') {
@@ -129,7 +120,7 @@ try {
             $status = strtolower((string)($_GET['status'] ?? 'all'));
 
             try {
-                $payload = $claimService->listForFamily((int)$member['family_id'], $status);
+                $payload = $claimService->listForFamily((string)$member['family_id'], $status);
                 $responder->send($payload);
             } catch (ApiException $exception) {
                 $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -141,7 +132,7 @@ try {
             $taskId = $validator->positiveInt($body, 'task_id');
 
             try {
-                $payload = $claimService->create((int)$member['family_id'], (int)$member['id'], $taskId);
+                $payload = $claimService->create((string)$member['family_id'], (int)$member['id'], $taskId);
                 $responder->send($payload, 201);
             } catch (ApiException $exception) {
                 $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -155,7 +146,7 @@ try {
         $action = $matches[2];
 
         try {
-            $payload = $claimService->finalize((int)$member['family_id'], (int)$member['id'], $claimId, $action);
+            $payload = $claimService->finalize((string)$member['family_id'], (int)$member['id'], $claimId, $action);
             $responder->send($payload);
         } catch (ApiException $exception) {
             $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -171,7 +162,7 @@ try {
          WHERE family_id = :family_id
          ORDER BY score DESC, name ASC'
         );
-        $stmt->execute([':family_id' => (int)$member['family_id']]);
+        $stmt->execute([':family_id' => (string)$member['family_id']]);
 
         $rows = $stmt->fetchAll();
         $scoreboard = [];
@@ -183,8 +174,6 @@ try {
                 'name' => $row['name'],
                 'score' => (int)$row['score'],
                 'rank' => $rank['name'],
-                'rank_from' => $rank['from'],
-                'rank_to' => $rank['to'],
                 'position' => $index + 1
             ];
         }
@@ -194,13 +183,13 @@ try {
 
     if ($uri === '/voting/rounds/current' && $method === 'GET') {
         $member = $authService->requireMember();
-        $responder->send($votingService->getCurrentRound((int)$member['family_id']));
+        $responder->send($votingService->getCurrentRound((string)$member['family_id']));
     }
 
     if ($uri === '/voting/rounds' && $method === 'POST') {
         $member = $authService->requireMember();
         try {
-            $payload = $votingService->createRound((int)$member['family_id']);
+            $payload = $votingService->createRound((string)$member['family_id']);
             $responder->send($payload, 201);
         } catch (ApiException $exception) {
             $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -209,7 +198,7 @@ try {
 
     if ($uri === '/voting/wishes' && $method === 'GET') {
         $member = $authService->requireMember();
-        $responder->send($votingService->listActiveWishes((int)$member['family_id']));
+        $responder->send($votingService->listActiveWishes((string)$member['family_id']));
     }
 
     if ($uri === '/voting/wishes' && $method === 'POST') {
@@ -218,7 +207,7 @@ try {
         $name = $validator->requiredString($body, 'name');
 
         try {
-            $payload = $votingService->createWish((int)$member['family_id'], (int)$member['id'], $name);
+            $payload = $votingService->createWish((string)$member['family_id'], (int)$member['id'], $name);
             $responder->send($payload, 201);
         } catch (ApiException $exception) {
             $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -233,7 +222,7 @@ try {
 
         try {
             $payload = $votingService->placeVote(
-                (int)$member['family_id'],
+                (string)$member['family_id'],
                 (int)$member['id'],
                 (int)$member['score'],
                 $wishId,
@@ -250,7 +239,7 @@ try {
         $roundId = (int)$matches[1];
 
         try {
-            $payload = $votingService->approveCloseRound((int)$member['family_id'], (int)$member['id'], $roundId);
+            $payload = $votingService->approveCloseRound((string)$member['family_id'], (int)$member['id'], $roundId);
             $responder->send($payload);
         } catch (ApiException $exception) {
             $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
@@ -262,7 +251,7 @@ try {
         $roundId = (int)$matches[1];
 
         try {
-            $payload = $votingService->getRoundResult((int)$member['family_id'], $roundId);
+            $payload = $votingService->getRoundResult((string)$member['family_id'], $roundId);
             $responder->send($payload);
         } catch (ApiException $exception) {
             $responder->send(['error' => $exception->getMessage()], $exception->statusCode());

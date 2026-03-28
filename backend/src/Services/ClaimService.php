@@ -15,7 +15,7 @@ final class ClaimService
     {
     }
 
-    public function listMine(int $familyId, int $memberId): array
+    public function listMine(string $familyId, int $memberId): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT c.id, c.task_id, c.status, c.approved_by, c.created_at, c.updated_at,
@@ -48,7 +48,7 @@ final class ClaimService
         return $claims;
     }
 
-    public function listForFamily(int $familyId, string $status): array
+    public function listForFamily(string $familyId, string $status): array
     {
         $allowed = ['pending', 'approved', 'rejected', 'all'];
         if (!in_array($status, $allowed, true)) {
@@ -95,13 +95,13 @@ final class ClaimService
         return $claims;
     }
 
-    public function create(int $familyId, int $memberId, int $taskId): array
+    public function create(string $familyId, int $memberId, int $taskId): array
     {
         $taskStmt = $this->pdo->prepare('SELECT id, family_id FROM tasks WHERE id = :id LIMIT 1');
         $taskStmt->execute([':id' => $taskId]);
         $task = $taskStmt->fetch();
 
-        if ($task === false || (int)$task['family_id'] !== $familyId) {
+        if ($task === false || (string)$task['family_id'] !== $familyId) {
             throw new ApiException('Task not found', 404);
         }
 
@@ -123,7 +123,7 @@ final class ClaimService
         ];
     }
 
-    public function finalize(int $familyId, int $reviewerId, int $claimId, string $action): array
+    public function finalize(string $familyId, int $reviewerId, int $claimId, string $action): array
     {
         $claimStmt = $this->pdo->prepare(
             'SELECT c.id, c.task_id, c.status, c.claimed_by, t.points, t.family_id
@@ -135,7 +135,7 @@ final class ClaimService
         $claimStmt->execute([':id' => $claimId]);
         $claim = $claimStmt->fetch();
 
-        if ($claim === false || (int)$claim['family_id'] !== $familyId) {
+        if ($claim === false || (string)$claim['family_id'] !== $familyId) {
             throw new ApiException('Claim not found', 404);
         }
 

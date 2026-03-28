@@ -15,7 +15,7 @@ final class VotingService
     {
     }
 
-    public function getCurrentRound(int $familyId): array
+    public function getCurrentRound(string $familyId): array
     {
         $round = $this->getOpenRound($familyId);
 
@@ -36,7 +36,7 @@ final class VotingService
         ];
     }
 
-    public function createRound(int $familyId): array
+    public function createRound(string $familyId): array
     {
         if ($this->getOpenRound($familyId) !== null) {
             throw new ApiException('An open voting round already exists', 409);
@@ -59,7 +59,7 @@ final class VotingService
         ];
     }
 
-    public function listActiveWishes(int $familyId): array
+    public function listActiveWishes(string $familyId): array
     {
         if ($this->getOpenRound($familyId) === null) {
             return [];
@@ -91,7 +91,7 @@ final class VotingService
         return $wishes;
     }
 
-    public function createWish(int $familyId, int $memberId, string $name): array
+    public function createWish(string $familyId, int $memberId, string $name): array
     {
         $round = $this->getOpenRound($familyId);
         if ($round === null) {
@@ -136,7 +136,7 @@ final class VotingService
         ];
     }
 
-    public function placeVote(int $familyId, int $memberId, int $memberScore, int $wishId, int $amount): array
+    public function placeVote(string $familyId, int $memberId, int $memberScore, int $wishId, int $amount): array
     {
         $round = $this->getOpenRound($familyId);
         if ($round === null) {
@@ -152,7 +152,7 @@ final class VotingService
         $wishStmt->execute([':id' => $wishId]);
         $wish = $wishStmt->fetch();
 
-        if ($wish === false || (int)$wish['family_id'] !== $familyId) {
+        if ($wish === false || (string)$wish['family_id'] !== $familyId) {
             throw new ApiException('Wish not found', 404);
         }
 
@@ -207,7 +207,7 @@ final class VotingService
         ];
     }
 
-    public function approveCloseRound(int $familyId, int $memberId, int $roundId): array
+    public function approveCloseRound(string $familyId, int $memberId, int $roundId): array
     {
         $roundStmt = $this->pdo->prepare(
             'SELECT id, family_id, status
@@ -218,7 +218,7 @@ final class VotingService
         $roundStmt->execute([':id' => $roundId]);
         $round = $roundStmt->fetch();
 
-        if ($round === false || (int)$round['family_id'] !== $familyId) {
+        if ($round === false || (string)$round['family_id'] !== $familyId) {
             throw new ApiException('Round not found', 404);
         }
 
@@ -287,7 +287,7 @@ final class VotingService
         ];
     }
 
-    public function getRoundResult(int $familyId, int $roundId): array
+    public function getRoundResult(string $familyId, int $roundId): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT r.id, r.family_id, r.status, r.closed_wish_id,
@@ -300,7 +300,7 @@ final class VotingService
         $stmt->execute([':id' => $roundId]);
         $result = $stmt->fetch();
 
-        if ($result === false || (int)$result['family_id'] !== $familyId) {
+        if ($result === false || (string)$result['family_id'] !== $familyId) {
             throw new ApiException('Round not found', 404);
         }
 
@@ -316,7 +316,7 @@ final class VotingService
         ];
     }
 
-    private function getOpenRound(int $familyId): ?array
+    private function getOpenRound(string $familyId): ?array
     {
         $stmt = $this->pdo->prepare(
             'SELECT id, family_id, status, created_at
@@ -360,7 +360,7 @@ final class VotingService
         return max(0, $score - $spent);
     }
 
-    private function findRoundWinnerCandidate(int $familyId): ?array
+    private function findRoundWinnerCandidate(string $familyId): ?array
     {
         $stmt = $this->pdo->prepare(
             'SELECT id, name, score, created_by, created_at

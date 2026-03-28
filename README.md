@@ -1,10 +1,14 @@
 # Family Life
 
-Phase 2 implementation for a family gamification app.
+Family gamification app for tasks, claims, scoreboards, and family voting rounds.
+
+Current status: Phase 2 is implemented and running.
+Current focus: stabilization, test coverage, and UX polish (Phase 3).
 
 ## Implemented
 
 - Family creation
+- String family IDs generated with `Robo\\RoboID\\RoboB32::genID()`
 - Add family members with auth tokens
 - SQLite database schema and PDO setup
 - URL token auth (`/?token=...`)
@@ -34,10 +38,17 @@ Phase 2 implementation for a family gamification app.
 - `index.php` - root entrypoint
 - `api/index.php` - API entrypoint
 - `backend/config/database.php` - PDO + schema initialization
-- `backend/api/index.php` - MVP API router and handlers
+- `backend/api/index.php` - API router and handlers
 - `public/index.php` - frontend page
 - `public/js/app.js` - frontend logic
 - `public/css/styles.css` - frontend styles
+
+## Next
+
+- Add automated tests for service and routing edge cases
+- Improve API validation and error consistency
+- Polish mobile usability for tasks, claims, and voting flows
+- Add a lightweight SQLite backup/export workflow
 
 ## Run Locally
 
@@ -88,3 +99,5 @@ Auth header format:
 ```text
 Authorization: Bearer <auth_token>
 ```
+
+Family IDs are opaque strings, not numeric autoincrement values.

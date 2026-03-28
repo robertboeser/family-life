@@ -4,8 +4,104 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b79c85932f8ab45cf9dc323085fad297",
-    "packages": [],
+    "content-hash": "babcecb79b7d3c95188b70bbf25ba372",
+    "packages": [
+        {
+            "name": "robertboeser/robo-id",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/robertboeser/php-robo-id.git",
+                "reference": "4bb5ac7009dd3df045a7285a0514c4bd20d8126d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/robertboeser/php-robo-id/zipball/4bb5ac7009dd3df045a7285a0514c4bd20d8126d",
+                "reference": "4bb5ac7009dd3df045a7285a0514c4bd20d8126d",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0",
+                "skleeschulte/base32": "^0.0.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Robo\\RoboID\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Robert Böser",
+                    "email": "code@robertboeser.de"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/robertboeser/php-robo-id/issues",
+                "source": "https://github.com/robertboeser/php-robo-id/tree/v1.2.0"
+            },
+            "time": "2024-11-03T23:05:26+00:00"
+        },
+        {
+            "name": "skleeschulte/base32",
+            "version": "0.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/skleeschulte/php-base32.git",
+                "reference": "42b651598d42ca51c00a6e71d2587e64e6e80734"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/skleeschulte/php-base32/zipball/42b651598d42ca51c00a6e71d2587e64e6e80734",
+                "reference": "42b651598d42ca51c00a6e71d2587e64e6e80734",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SKleeschulte\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Stefan Kleeschulte",
+                    "email": "stefan.kleeschulte@smk.biz",
+                    "homepage": "http://rays-blog.de",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Base32 encoding and decoding class (RFC 4648, RFC 4648 extended hex, Crockford, z-base-32/Zooko).",
+            "homepage": "https://github.com/skleeschulte/php-base32",
+            "keywords": [
+                "base32",
+                "bcmath",
+                "bytestring",
+                "crockford",
+                "decode",
+                "encode",
+                "integer",
+                "rfc4686",
+                "z-base-32",
+                "zooko"
+            ],
+            "support": {
+                "issues": "https://github.com/skleeschulte/php-base32/issues",
+                "source": "https://github.com/skleeschulte/php-base32/tree/v0.0.2"
+            },
+            "time": "2015-11-19T14:01:26+00:00"
+        }
+    ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",

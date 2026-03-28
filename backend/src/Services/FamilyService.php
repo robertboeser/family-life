@@ -7,6 +7,7 @@ namespace FamilyLife\Backend\Services;
 use FamilyLife\Backend\Support\ApiException;
 use FamilyLife\Backend\Support\Clock;
 use PDO;
+use Robo\RoboID\RoboB32;
 
 final class FamilyService
 {
@@ -16,17 +17,20 @@ final class FamilyService
 
     public function createFamily(string $name): array
     {
-        $stmt = $this->pdo->prepare('INSERT INTO families (name, updated_at) VALUES (:name, :now)');
-        $stmt->execute([':name' => $name, ':now' => Clock::now()]);
+        $id = $this->generateFamilyId();
+        $now = Clock::now();
+
+        $stmt = $this->pdo->prepare('INSERT INTO families (id, name, created_at, updated_at) VALUES (:id, :name, :now, :now)');
+        $stmt->execute([':id' => $id, ':name' => $name, ':now' => $now]);
 
         return [
-            'id' => (int)$this->pdo->lastInsertId(),
+            'id' => $id,
             'name' => $name,
-            'created_at' => Clock::now(),
+            'created_at' => $now,
         ];
     }
 
-    public function listMembers(int $familyId): array
+    public function listMembers(string $familyId): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT id, name, score
@@ -51,7 +55,7 @@ final class FamilyService
         return $data;
     }
 
-    public function createMember(int $familyId, string $name): array
+    public function createMember(string $familyId, string $name): array
     {
         $familyStmt = $this->pdo->prepare('SELECT id FROM families WHERE id = :id LIMIT 1');
         $familyStmt->execute([':id' => $familyId]);
@@ -85,13 +89,29 @@ final class FamilyService
         return [
             'id' => (int)$member['id'],
             'name' => $member['name'],
-            'family_id' => (int)$member['family_id'],
+            'family_id' => (string)$member['family_id'],
             'score' => (int)$member['score'],
             'rank' => $rank['rank'],
             'rank_name' => $rank['name'],
-            'rank_from' => $rank['from'],
-            'rank_to' => $rank['to'],
         ];
+    }
+
+    private function generateFamilyId(): string
+    {
+        $generator = new RoboB32();
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $id = $generator->genID();
+
+            $stmt = $this->pdo->prepare('SELECT 1 FROM families WHERE id = :id LIMIT 1');
+            $stmt->execute([':id' => $id]);
+
+            if ($stmt->fetchColumn() === false) {
+                return $id;
+            }
+        }
+
+        throw new ApiException('Unable to generate family ID', 500);
     }
 
     private function generateToken(): string
