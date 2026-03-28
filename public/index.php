@@ -92,6 +92,18 @@ declare(strict_types=1);
                                 </div>
                             </div>
                         </form>
+
+                        <form id="deleteTaskForm" class="mb-3">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <input id="deleteTaskId" type="number" min="1" class="form-control" placeholder="Task ID to delete" required>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-outline-danger" type="submit">Delete</button>
+                                </div>
+                            </div>
+                        </form>
+
                         <ul id="tasksList" class="list-group list-group-flush"></ul>
                     </div>
                 </div>
@@ -132,7 +144,19 @@ declare(strict_types=1);
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">5. Review Pending Claims</h5>
+                        <h5 class="mb-0">5. My Claim History</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="refreshMyClaimsBtn" class="btn btn-sm btn-outline-primary mb-3">Refresh My Claims</button>
+                        <ul id="myClaimsList" class="list-group list-group-flush"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">6. Review Pending Claims</h5>
                     </div>
                     <div class="card-body">
                         <form id="reviewForm" class="mb-3">
@@ -159,11 +183,83 @@ declare(strict_types=1);
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">6. Scoreboard</h5>
+                        <h5 class="mb-0">7. Scoreboard</h5>
                     </div>
                     <div class="card-body">
                         <button id="refreshScoreboardBtn" class="btn btn-primary mb-3">Refresh Scoreboard</button>
                         <ul id="scoreboardList" class="list-group list-group-flush"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">8. Voting Round</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <button id="createRoundBtn" class="btn btn-primary" type="button">Create Round</button>
+                            <button id="refreshVotingBtn" class="btn btn-outline-primary" type="button">Refresh Voting</button>
+                        </div>
+
+                        <pre id="votingRoundOutput" class="output mb-3"></pre>
+
+                        <div class="row g-3">
+                            <div class="col-lg-4">
+                                <form id="createWishForm" class="mb-3">
+                                    <label for="wishName" class="form-label">Create Wish</label>
+                                    <div class="input-group">
+                                        <input id="wishName" type="text" class="form-control" placeholder="Wish name" required>
+                                        <button class="btn btn-primary" type="submit">Add</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <form id="voteWishForm" class="mb-3">
+                                    <label class="form-label">Vote on Wish</label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <input id="voteWishId" type="number" min="1" class="form-control" placeholder="Wish ID" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <input id="voteAmount" type="number" min="1" class="form-control" placeholder="Amount" required>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary mt-2" type="submit">Place Vote</button>
+                                </form>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <form id="closeRoundForm" class="mb-3">
+                                    <label class="form-label">Approve Round Closure</label>
+                                    <div class="input-group">
+                                        <input id="closeRoundId" type="number" min="1" class="form-control" placeholder="Round ID" required>
+                                        <button class="btn btn-outline-primary" type="submit">Approve Close</button>
+                                    </div>
+                                </form>
+
+                                <form id="roundResultForm">
+                                    <label class="form-label">Get Round Result</label>
+                                    <div class="input-group">
+                                        <input id="resultRoundId" type="number" min="1" class="form-control" placeholder="Round ID" required>
+                                        <button class="btn btn-outline-secondary" type="submit">Result</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <h6>Active Wishes</h6>
+                                <ul id="wishesList" class="list-group list-group-flush"></ul>
+                            </div>
+                            <div class="col-lg-6">
+                                <h6>Voting Actions Output</h6>
+                                <pre id="votingActionOutput" class="output mb-0"></pre>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

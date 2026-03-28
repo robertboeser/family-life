@@ -9,7 +9,12 @@
 
     const tasksList = document.getElementById('tasksList');
     const claimsList = document.getElementById('claimsList');
+    const myClaimsList = document.getElementById('myClaimsList');
     const scoreboardList = document.getElementById('scoreboardList');
+
+    const votingRoundOutput = document.getElementById('votingRoundOutput');
+    const votingActionOutput = document.getElementById('votingActionOutput');
+    const wishesList = document.getElementById('wishesList');
 
     function getToken() {
         return localStorage.getItem(tokenKey) || '';
@@ -96,7 +101,7 @@
         try {
             const tasks = await api('/tasks');
             list(tasksList, tasks, function (task) {
-                return '#' + task.id + ' | ' + task.name + ' | ' + task.points + ' pts';
+                return '#' + task.id + ' | ' + task.name + ' | ' + task.points + ' pts | creator #' + task.created_by;
             });
         } catch (error) {
             tasksList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
@@ -115,6 +120,17 @@
         }
     }
 
+    async function refreshMyClaims() {
+        try {
+            const claims = await api('/claims/mine');
+            list(myClaimsList, claims, function (claim) {
+                return '#' + claim.id + ' | Task #' + claim.task_id + ' (' + claim.task_name + ') | ' + claim.points + ' pts | ' + claim.status;
+            });
+        } catch (error) {
+            myClaimsList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+        }
+    }
+
     async function refreshScoreboard() {
         try {
             const board = await api('/scoreboard');
@@ -128,6 +144,30 @@
             });
         } catch (error) {
             scoreboardList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+        }
+    }
+
+    async function refreshVotingRound() {
+        try {
+            const round = await api('/voting/rounds/current');
+            print(votingRoundOutput, round);
+            if (round && round.id) {
+                document.getElementById('closeRoundId').value = round.id;
+                document.getElementById('resultRoundId').value = round.id;
+            }
+        } catch (error) {
+            votingRoundOutput.textContent = error.message;
+        }
+    }
+
+    async function refreshWishes() {
+        try {
+            const wishes = await api('/voting/wishes');
+            list(wishesList, wishes, function (wish) {
+                return '#' + wish.id + ' | ' + wish.name + ' | score: ' + wish.score + ' | by ' + wish.created_by_name;
+            });
+        } catch (error) {
+            wishesList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
         }
     }
 
@@ -189,7 +229,19 @@
             });
             await refreshTasks();
         } catch (error) {
-            tasksList.innerHTML = '<li>' + error.message + '</li>';
+            tasksList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+        }
+    });
+
+    document.getElementById('deleteTaskForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const taskId = Number(document.getElementById('deleteTaskId').value);
+
+        try {
+            await api('/tasks/' + taskId, { method: 'DELETE' });
+            await refreshTasks();
+        } catch (error) {
+            tasksList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
         }
     });
 
@@ -203,8 +255,9 @@
                 body: JSON.stringify({ task_id: taskId })
             });
             await refreshClaims();
+            await refreshMyClaims();
         } catch (error) {
-            claimsList.innerHTML = '<li>' + error.message + '</li>';
+            claimsList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
         }
     });
 
@@ -225,9 +278,88 @@
         }
     });
 
+    document.getElementById('createRoundBtn').addEventListener('click', async function () {
+        try {
+            const result = await api('/voting/rounds', { method: 'POST', body: JSON.stringify({}) });
+            print(votingActionOutput, result);
+            await refreshVoting();
+        } catch (error) {
+            votingActionOutput.textContent = error.message;
+        }
+    });
+
+    document.getElementById('createWishForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const name = document.getElementById('wishName').value;
+
+        try {
+            const result = await api('/voting/wishes', {
+                method: 'POST',
+                body: JSON.stringify({ name: name })
+            });
+            print(votingActionOutput, result);
+            await refreshVoting();
+        } catch (error) {
+            votingActionOutput.textContent = error.message;
+        }
+    });
+
+    document.getElementById('voteWishForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const wishId = Number(document.getElementById('voteWishId').value);
+        const amount = Number(document.getElementById('voteAmount').value);
+
+        try {
+            const result = await api('/voting/votes', {
+                method: 'POST',
+                body: JSON.stringify({ wish_id: wishId, amount: amount })
+            });
+            print(votingActionOutput, result);
+            await refreshVoting();
+            await refreshMe();
+        } catch (error) {
+            votingActionOutput.textContent = error.message;
+        }
+    });
+
+    document.getElementById('closeRoundForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const roundId = Number(document.getElementById('closeRoundId').value);
+
+        try {
+            const result = await api('/voting/rounds/' + roundId + '/approve-close', {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+            print(votingActionOutput, result);
+            await refreshVoting();
+        } catch (error) {
+            votingActionOutput.textContent = error.message;
+        }
+    });
+
+    document.getElementById('roundResultForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const roundId = Number(document.getElementById('resultRoundId').value);
+
+        try {
+            const result = await api('/voting/rounds/' + roundId + '/result');
+            print(votingActionOutput, result);
+        } catch (error) {
+            votingActionOutput.textContent = error.message;
+        }
+    });
+
     document.getElementById('refreshClaimsBtn').addEventListener('click', refreshClaims);
     document.getElementById('claimFilter').addEventListener('change', refreshClaims);
+    document.getElementById('refreshMyClaimsBtn').addEventListener('click', refreshMyClaims);
     document.getElementById('refreshScoreboardBtn').addEventListener('click', refreshScoreboard);
+    document.getElementById('refreshVotingBtn').addEventListener('click', refreshVoting);
+
+    async function refreshVoting() {
+        await refreshVotingRound();
+        await refreshWishes();
+    }
 
     async function refreshAll() {
         const tokenFromUrl = new URLSearchParams(window.location.search).get('token');
@@ -239,7 +371,9 @@
         await refreshMe();
         await refreshTasks();
         await refreshClaims();
+        await refreshMyClaims();
         await refreshScoreboard();
+        await refreshVoting();
     }
 
     refreshAll();

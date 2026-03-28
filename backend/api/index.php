@@ -2,7 +2,18 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../src/helpers.php';
+use FamilyLife\Backend\Http\JsonResponder;
+use FamilyLife\Backend\Http\Request;
+use FamilyLife\Backend\Services\AuthService;
+use FamilyLife\Backend\Services\VotingService;
+use FamilyLife\Backend\Services\TaskService;
+use FamilyLife\Backend\Services\ClaimService;
+use FamilyLife\Backend\Services\RankService;
+use FamilyLife\Backend\Services\FamilyService;
+use FamilyLife\Backend\Support\ApiException;
+use FamilyLife\Backend\Support\Validator;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
@@ -14,6 +25,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 }
 
 $pdo = db();
+$request = new Request();
+$validator = new Validator();
+$responder = new JsonResponder();
+$authService = new AuthService($pdo, $request);
+$votingService = new VotingService($pdo);
+$taskService = new TaskService($pdo);
+$claimService = new ClaimService($pdo);
+$rankService = new RankService();
+$familyService = new FamilyService($pdo, $rankService);
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 
@@ -23,332 +43,234 @@ if (str_starts_with($uri, $apiBase)) {
 }
 $uri = '/' . trim($uri, '/');
 
-if ($uri === '/rank-name' && $method === 'GET') {
-    $rawIndex = $_GET['index'] ?? null;
+try {
 
-    if ($rawIndex === null || filter_var($rawIndex, FILTER_VALIDATE_INT) === false || (int)$rawIndex < 0) {
-        jsonResponse(['error' => 'index must be a non-negative integer'], 422);
-    }
+    if ($uri === '/rank-name' && $method === 'GET') {
+        $index = $validator->nonNegativeInt($_GET['index'] ?? null, 'index');
 
-    $index = (int)$rawIndex;
-
-    jsonResponse([
-        'index' => $index,
-        'name' => proceduralRankNameFromIndex($index)
-    ]);
-}
-
-if ($uri === '/families' && $method === 'POST') {
-    $body = getJsonBody();
-    $name = assertRequiredString($body, 'name');
-
-    $stmt = $pdo->prepare('INSERT INTO families (name, updated_at) VALUES (:name, :now)');
-    $stmt->execute([':name' => $name, ':now' => now()]);
-
-    $id = (int)$pdo->lastInsertId();
-    jsonResponse([
-        'id' => $id,
-        'name' => $name,
-        'created_at' => now()
-    ], 201);
-}
-
-if (preg_match('#^/families/(\d+)/members$#', $uri, $matches) === 1) {
-    $familyId = (int)$matches[1];
-
-    if ($method === 'GET') {
-        $stmt = $pdo->prepare('SELECT id, name, score FROM family_members WHERE family_id = :family_id ORDER BY score DESC, name ASC');
-        $stmt->execute([':family_id' => $familyId]);
-        $rows = $stmt->fetchAll();
-
-        $data = [];
-        foreach ($rows as $row) {
-            $rank = rankFromScore((int)$row['score']);
-            $data[] = [
-                'id' => (int)$row['id'],
-                'name' => $row['name'],
-                'score' => (int)$row['score'],
-                'rank' => $rank['rank'],
-                'rank_name' => $rank['name']
-            ];
-        }
-
-        jsonResponse($data);
-    }
-
-    if ($method === 'POST') {
-        $body = getJsonBody();
-        $name = assertRequiredString($body, 'name');
-
-        $familyStmt = $pdo->prepare('SELECT id FROM families WHERE id = :id LIMIT 1');
-        $familyStmt->execute([':id' => $familyId]);
-        if ($familyStmt->fetch() === false) {
-            jsonResponse(['error' => 'Family not found'], 404);
-        }
-
-        $token = generateToken();
-        $stmt = $pdo->prepare(
-            'INSERT INTO family_members (family_id, name, auth_token, updated_at) VALUES (:family_id, :name, :auth_token, :now)'
-        );
-        $stmt->execute([
-            ':family_id' => $familyId,
-            ':name' => $name,
-            ':auth_token' => $token,
-            ':now' => now()
+        $responder->send([
+            'index' => $index,
+            'name' => $rankService->proceduralNameFromIndex($index)
         ]);
-
-        jsonResponse([
-            'id' => (int)$pdo->lastInsertId(),
-            'name' => $name,
-            'auth_token' => $token,
-            'score' => 0
-        ], 201);
     }
-}
 
-if ($uri === '/me' && $method === 'GET') {
-    $member = requireAuth($pdo);
-    $rank = rankFromScore((int)$member['score']);
+    if ($uri === '/families' && $method === 'POST') {
+        $body = $request->jsonBody();
+        $name = $validator->requiredString($body, 'name');
 
-    jsonResponse([
-        'id' => (int)$member['id'],
-        'name' => $member['name'],
-        'family_id' => (int)$member['family_id'],
-        'score' => (int)$member['score'],
-        'rank' => $rank['rank'],
-        'rank_name' => $rank['name'],
-        'rank_from' => $rank['from'],
-        'rank_to' => $rank['to']
-    ]);
-}
+        $payload = $familyService->createFamily($name);
+        $responder->send($payload, 201);
+    }
 
-if ($uri === '/tasks') {
-    $member = requireAuth($pdo);
+    if (preg_match('#^/families/(\d+)/members$#', $uri, $matches) === 1) {
+        $familyId = (int)$matches[1];
 
-    if ($method === 'GET') {
-        $stmt = $pdo->prepare(
-            'SELECT id, name, points, created_by, created_at
-             FROM tasks
-             WHERE family_id = :family_id
-             ORDER BY created_at DESC, id DESC'
-        );
-        $stmt->execute([':family_id' => (int)$member['family_id']]);
-
-        $tasks = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $tasks[] = [
-                'id' => (int)$row['id'],
-                'name' => $row['name'],
-                'points' => (int)$row['points'],
-                'created_by' => (int)$row['created_by'],
-                'created_at' => $row['created_at']
-            ];
+        if ($method === 'GET') {
+            $responder->send($familyService->listMembers($familyId));
         }
 
-        jsonResponse($tasks);
+        if ($method === 'POST') {
+            $body = $request->jsonBody();
+            $name = $validator->requiredString($body, 'name');
+
+            try {
+                $payload = $familyService->createMember($familyId, $name);
+                $responder->send($payload, 201);
+            } catch (ApiException $exception) {
+                $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+            }
+        }
     }
 
-    if ($method === 'POST') {
-        $body = getJsonBody();
-        $name = assertRequiredString($body, 'name');
-        $points = assertPositiveInt($body, 'points');
+    if ($uri === '/me' && $method === 'GET') {
+        $member = $authService->requireMember();
+        $responder->send($familyService->me($member));
+    }
+
+    if ($uri === '/tasks') {
+        $member = $authService->requireMember();
+
+        if ($method === 'GET') {
+            $responder->send($taskService->listByFamily((int)$member['family_id']));
+        }
+
+        if ($method === 'POST') {
+            $body = $request->jsonBody();
+            $name = $validator->requiredString($body, 'name');
+            $points = $validator->positiveInt($body, 'points');
+
+            $payload = $taskService->create((int)$member['family_id'], (int)$member['id'], $name, $points);
+            $responder->send($payload, 201);
+        }
+    }
+
+    if (preg_match('#^/tasks/(\d+)$#', $uri, $matches) === 1 && $method === 'DELETE') {
+        $member = $authService->requireMember();
+        $taskId = (int)$matches[1];
+
+        try {
+            $payload = $taskService->delete((int)$member['family_id'], (int)$member['id'], $taskId);
+            $responder->send($payload);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    if ($uri === '/claims/mine' && $method === 'GET') {
+        $member = $authService->requireMember();
+
+        $responder->send($claimService->listMine((int)$member['family_id'], (int)$member['id']));
+    }
+
+    if ($uri === '/claims') {
+        $member = $authService->requireMember();
+
+        if ($method === 'GET') {
+            $status = strtolower((string)($_GET['status'] ?? 'all'));
+
+            try {
+                $payload = $claimService->listForFamily((int)$member['family_id'], $status);
+                $responder->send($payload);
+            } catch (ApiException $exception) {
+                $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+            }
+        }
+
+        if ($method === 'POST') {
+            $body = $request->jsonBody();
+            $taskId = $validator->positiveInt($body, 'task_id');
+
+            try {
+                $payload = $claimService->create((int)$member['family_id'], (int)$member['id'], $taskId);
+                $responder->send($payload, 201);
+            } catch (ApiException $exception) {
+                $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+            }
+        }
+    }
+
+    if (preg_match('#^/claims/(\d+)/(approve|reject)$#', $uri, $matches) === 1 && $method === 'PUT') {
+        $member = $authService->requireMember();
+        $claimId = (int)$matches[1];
+        $action = $matches[2];
+
+        try {
+            $payload = $claimService->finalize((int)$member['family_id'], (int)$member['id'], $claimId, $action);
+            $responder->send($payload);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    if ($uri === '/scoreboard' && $method === 'GET') {
+        $member = $authService->requireMember();
 
         $stmt = $pdo->prepare(
-            'INSERT INTO tasks (family_id, name, points, created_by, updated_at)
-             VALUES (:family_id, :name, :points, :created_by, :now)'
-        );
-        $stmt->execute([
-            ':family_id' => (int)$member['family_id'],
-            ':name' => $name,
-            ':points' => $points,
-            ':created_by' => (int)$member['id'],
-            ':now' => now()
-        ]);
-
-        jsonResponse([
-            'id' => (int)$pdo->lastInsertId(),
-            'name' => $name,
-            'points' => $points,
-            'created_by' => (int)$member['id'],
-            'created_at' => now()
-        ], 201);
-    }
-}
-
-if ($uri === '/claims') {
-    $member = requireAuth($pdo);
-
-    if ($method === 'GET') {
-        $status = strtolower((string)($_GET['status'] ?? 'all'));
-        $allowed = ['pending', 'approved', 'rejected', 'all'];
-        if (!in_array($status, $allowed, true)) {
-            jsonResponse(['error' => 'Invalid status filter'], 422);
-        }
-
-        $query =
-            'SELECT c.id, c.task_id, c.claimed_by, c.status, c.approved_by, c.created_at,
-                    t.name AS task_name, t.points,
-                    m.name AS claimed_by_name
-             FROM task_claims c
-             INNER JOIN tasks t ON t.id = c.task_id
-             INNER JOIN family_members m ON m.id = c.claimed_by
-             WHERE t.family_id = :family_id';
-
-        if ($status !== 'all') {
-            $query .= ' AND c.status = :status';
-        }
-
-        $query .= ' ORDER BY c.created_at DESC, c.id DESC';
-
-        $stmt = $pdo->prepare($query);
-        $params = [':family_id' => (int)$member['family_id']];
-        if ($status !== 'all') {
-            $params[':status'] = $status;
-        }
-        $stmt->execute($params);
-
-        $claims = [];
-        foreach ($stmt->fetchAll() as $row) {
-            $claims[] = [
-                'id' => (int)$row['id'],
-                'task_id' => (int)$row['task_id'],
-                'task_name' => $row['task_name'],
-                'points' => (int)$row['points'],
-                'claimed_by' => (int)$row['claimed_by'],
-                'claimed_by_name' => $row['claimed_by_name'],
-                'status' => $row['status'],
-                'approved_by' => $row['approved_by'] !== null ? (int)$row['approved_by'] : null,
-                'created_at' => $row['created_at']
-            ];
-        }
-
-        jsonResponse($claims);
-    }
-
-    if ($method === 'POST') {
-        $body = getJsonBody();
-        $taskId = assertPositiveInt($body, 'task_id');
-
-        $taskStmt = $pdo->prepare('SELECT id, family_id FROM tasks WHERE id = :id LIMIT 1');
-        $taskStmt->execute([':id' => $taskId]);
-        $task = $taskStmt->fetch();
-
-        if ($task === false || (int)$task['family_id'] !== (int)$member['family_id']) {
-            jsonResponse(['error' => 'Task not found'], 404);
-        }
-
-        $stmt = $pdo->prepare(
-            'INSERT INTO task_claims (task_id, claimed_by, status, updated_at) VALUES (:task_id, :claimed_by, :status, :now)'
-        );
-        $stmt->execute([
-            ':task_id' => $taskId,
-            ':claimed_by' => (int)$member['id'],
-            ':status' => 'pending',
-            ':now' => now()
-        ]);
-
-        jsonResponse([
-            'id' => (int)$pdo->lastInsertId(),
-            'task_id' => $taskId,
-            'status' => 'pending',
-            'created_at' => now()
-        ], 201);
-    }
-}
-
-if (preg_match('#^/claims/(\d+)/(approve|reject)$#', $uri, $matches) === 1 && $method === 'PUT') {
-    $member = requireAuth($pdo);
-    $claimId = (int)$matches[1];
-    $action = $matches[2];
-
-    $claimStmt = $pdo->prepare(
-        'SELECT c.id, c.task_id, c.status, c.claimed_by, t.points, t.family_id
-         FROM task_claims c
-         INNER JOIN tasks t ON t.id = c.task_id
-         WHERE c.id = :id
-         LIMIT 1'
-    );
-    $claimStmt->execute([':id' => $claimId]);
-    $claim = $claimStmt->fetch();
-
-    if ($claim === false || (int)$claim['family_id'] !== (int)$member['family_id']) {
-        jsonResponse(['error' => 'Claim not found'], 404);
-    }
-
-    if ($claim['status'] !== 'pending') {
-        jsonResponse(['error' => 'Claim is already finalized'], 409);
-    }
-
-    $newStatus = $action === 'approve' ? 'approved' : 'rejected';
-
-    $pdo->beginTransaction();
-    try {
-        $updateStmt = $pdo->prepare(
-            'UPDATE task_claims
-             SET status = :status, approved_by = :approved_by, updated_at = :now
-             WHERE id = :id'
-        );
-        $updateStmt->execute([
-            ':status' => $newStatus,
-            ':approved_by' => (int)$member['id'],
-            ':now' => now(),
-            ':id' => $claimId
-        ]);
-
-        if ($newStatus === 'approved') {
-            $scoreStmt = $pdo->prepare(
-                'UPDATE family_members
-                 SET score = score + :points, updated_at = :now
-                 WHERE id = :member_id'
-            );
-            $scoreStmt->execute([
-                ':points' => (int)$claim['points'],
-                ':now' => now(),
-                ':member_id' => (int)$claim['claimed_by']
-            ]);
-        }
-
-        $pdo->commit();
-    } catch (Throwable $e) {
-        $pdo->rollBack();
-        jsonResponse(['error' => 'Unable to update claim'], 500);
-    }
-
-    jsonResponse([
-        'id' => $claimId,
-        'status' => $newStatus,
-        'updated_at' => now()
-    ]);
-}
-
-if ($uri === '/scoreboard' && $method === 'GET') {
-    $member = requireAuth($pdo);
-
-    $stmt = $pdo->prepare(
-        'SELECT id, name, score
+            'SELECT id, name, score
          FROM family_members
          WHERE family_id = :family_id
          ORDER BY score DESC, name ASC'
-    );
-    $stmt->execute([':family_id' => (int)$member['family_id']]);
+        );
+        $stmt->execute([':family_id' => (int)$member['family_id']]);
 
-    $rows = $stmt->fetchAll();
-    $scoreboard = [];
+        $rows = $stmt->fetchAll();
+        $scoreboard = [];
 
-    foreach ($rows as $index => $row) {
-        $rank = rankFromScore((int)$row['score']);
-        $scoreboard[] = [
-            'id' => (int)$row['id'],
-            'name' => $row['name'],
-            'score' => (int)$row['score'],
-            'rank' => $rank['name'],
-            'rank_from' => $rank['from'],
-            'rank_to' => $rank['to'],
-            'position' => $index + 1
-        ];
+        foreach ($rows as $index => $row) {
+            $rank = $rankService->rankFromScore((int)$row['score']);
+            $scoreboard[] = [
+                'id' => (int)$row['id'],
+                'name' => $row['name'],
+                'score' => (int)$row['score'],
+                'rank' => $rank['name'],
+                'rank_from' => $rank['from'],
+                'rank_to' => $rank['to'],
+                'position' => $index + 1
+            ];
+        }
+
+        $responder->send($scoreboard);
     }
 
-    jsonResponse($scoreboard);
-}
+    if ($uri === '/voting/rounds/current' && $method === 'GET') {
+        $member = $authService->requireMember();
+        $responder->send($votingService->getCurrentRound((int)$member['family_id']));
+    }
 
-jsonResponse(['error' => 'Not found'], 404);
+    if ($uri === '/voting/rounds' && $method === 'POST') {
+        $member = $authService->requireMember();
+        try {
+            $payload = $votingService->createRound((int)$member['family_id']);
+            $responder->send($payload, 201);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    if ($uri === '/voting/wishes' && $method === 'GET') {
+        $member = $authService->requireMember();
+        $responder->send($votingService->listActiveWishes((int)$member['family_id']));
+    }
+
+    if ($uri === '/voting/wishes' && $method === 'POST') {
+        $member = $authService->requireMember();
+        $body = $request->jsonBody();
+        $name = $validator->requiredString($body, 'name');
+
+        try {
+            $payload = $votingService->createWish((int)$member['family_id'], (int)$member['id'], $name);
+            $responder->send($payload, 201);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    if ($uri === '/voting/votes' && $method === 'POST') {
+        $member = $authService->requireMember();
+        $body = $request->jsonBody();
+        $wishId = $validator->positiveInt($body, 'wish_id');
+        $amount = $validator->positiveInt($body, 'amount');
+
+        try {
+            $payload = $votingService->placeVote(
+                (int)$member['family_id'],
+                (int)$member['id'],
+                (int)$member['score'],
+                $wishId,
+                $amount
+            );
+            $responder->send($payload, 201);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    if (preg_match('#^/voting/rounds/(\d+)/approve-close$#', $uri, $matches) === 1 && $method === 'POST') {
+        $member = $authService->requireMember();
+        $roundId = (int)$matches[1];
+
+        try {
+            $payload = $votingService->approveCloseRound((int)$member['family_id'], (int)$member['id'], $roundId);
+            $responder->send($payload);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    if (preg_match('#^/voting/rounds/(\d+)/result$#', $uri, $matches) === 1 && $method === 'GET') {
+        $member = $authService->requireMember();
+        $roundId = (int)$matches[1];
+
+        try {
+            $payload = $votingService->getRoundResult((int)$member['family_id'], $roundId);
+            $responder->send($payload);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
+    $responder->send(['error' => 'Not found'], 404);
+
+} catch (ApiException $exception) {
+    $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+}
