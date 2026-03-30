@@ -69,6 +69,23 @@
         localStorage.setItem(tokenKey, token);
     }
 
+    function getTokenFromHash() {
+        const hash = window.location.hash.replace(/^#/, '');
+        if (!hash) {
+            return '';
+        }
+
+        return new URLSearchParams(hash).get('token') || '';
+    }
+
+    function clearTokenFromHash() {
+        if (!window.location.hash) {
+            return;
+        }
+
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     function buildApiUrl(path) {
         const [rawPath, rawQuery = ''] = path.split('?');
         const cleanPath = (rawPath || '/').replace(/\/+$/, '') || '/';
@@ -298,7 +315,7 @@
                 method: 'POST',
                 body: JSON.stringify({ name: name })
             });
-            const url = window.location.origin + '/?token=' + data.auth_token;
+            const url = window.location.origin + '/#token=' + encodeURIComponent(data.auth_token);
             tokenUrlPreview.textContent = url;
             print(setupOutput, { member: data, auth_url: url });
         } catch (error) {
@@ -475,10 +492,13 @@
     }
 
     async function refreshAll() {
-        const tokenFromUrl = new URLSearchParams(window.location.search).get('token');
-        if (tokenFromUrl) {
-            setToken(tokenFromUrl);
-            document.getElementById('sessionToken').value = tokenFromUrl;
+        const tokenFromHash = getTokenFromHash();
+        if (tokenFromHash) {
+            setToken(tokenFromHash);
+            document.getElementById('sessionToken').value = tokenFromHash;
+            clearTokenFromHash();
+        } else {
+            document.getElementById('sessionToken').value = getToken();
         }
 
         await refreshMe();

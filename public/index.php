@@ -77,7 +77,7 @@ declare(strict_types=1);
 
                             <div class="alert alert-info mb-2" role="alert">
                                 <small><strong>Token URL:</strong></small>
-                                <div id="tokenUrlPreview" class="font-monospace text-break" style="font-size: 0.85rem;">/?token=...</div>
+                                <div id="tokenUrlPreview" class="font-monospace text-break" style="font-size: 0.85rem;">/#token=...</div>
                             </div>
                             <pre id="setupOutput" class="output mb-0"></pre>
                         </div>
