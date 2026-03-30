@@ -2,6 +2,13 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 2rem 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .navbar-brand {
@@ -9,10 +16,37 @@ body {
     font-weight: 700;
 }
 
+.navbar-nav .nav-link {
+    font-weight: 500;
+    color: #666 !important;
+    margin: 0 0.5rem;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: #f0f0f0;
+    color: #667eea !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: #667eea !important;
+    background-color: #f0f0f0;
+    font-weight: 600;
+}
+
 .card {
     border: none;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card-header {
@@ -23,15 +57,65 @@ body {
     border-radius: 12px 12px 0 0;
     font-weight: 700;
     letter-spacing: 0.01em;
+    padding: 1rem 1.25rem;
+}
+
+.card-header h5 {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .btn-primary {
     background: #667eea;
     border: none;
+    color: #fff;
 }
 
 .btn-primary:hover {
     background: #5568d3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-success {
+    background: #48bb78;
+    border: none;
+}
+
+.btn-success:hover {
+    background: #38a169;
+}
+
+.btn-outline-danger {
+    color: #e53e3e;
+    border-color: #e53e3e;
+}
+
+.btn-outline-danger:hover {
+    background: #e53e3e;
+    border-color: #e53e3e;
+}
+
+.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.form-control,
+.form-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.95rem;
 }
 
 .form-control:focus,
@@ -40,18 +124,360 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
+.form-label {
+    font-weight: 600;
+    color: #1f2a44;
+    margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="password"] {
+    background: #fafbfc;
+}
+
 #authStatus {
     font-size: 0.95rem;
     color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#authStatus strong {
+    color: #1f2a44;
+}
+
+#authStatus .text-muted {
+    color: #a0aec0 !important;
+}
+
+#authStatus .text-danger {
+    color: #e53e3e !important;
+}
+
+#tokenUrlPreview {
+    background: #f0f4ff;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    word-break: break-all;
+    margin-top: 0.5rem;
 }
 
 .output {
     background: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 8px;
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
     font-size: 0.85rem;
     font-family: "Courier New", monospace;
     padding: 0.75rem;
+    color: #1f2a44;
+    line-height: 1.4;
+}
+
+.list-group {
+    border: none;
+}
+
+.list-group-item {
+    border: 1px solid #e9edf7;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: #fff;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: #1f2a44;
+}
+
+.list-group-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+}
+
+.list-group-item.list-group-item-danger {
+    background: #fed7d7;
+    border-color: #fc8181;
+    color: #742a2a;
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.alert-info {
+    background: #bee3f8;
+    color: #2c5282;
+    border: 1px solid #90cdf4;
+}
+
+.alert-danger {
+    background: #fed7d7;
+    color: #742a2a;
+    border: 1px solid #fc8181;
+}
+
+.alert-success {
+    background: #c6f6d5;
+    color: #22543d;
+    border: 1px solid #9ae6b4;
+}
+
+table {
+    font-size: 0.95rem;
+}
+
+table thead {
+    background: #f7fafc;
+    font-weight: 600;
+    color: #1f2a44;
+}
+
+table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+table tbody tr:hover {
+    background-color: #f7fafc;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem 0;
+    }
+
+    .container {
+        padding: 0 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.4rem;
+    }
+
+    .navbar-nav .nav-link {
+        margin: 0.25rem 0;
+        padding: 0.5rem 0.5rem !important;
+        font-size: 0.9rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .card-header h5 {
+        font-size: 1rem;
+    }
+
+    .row.g-3 > .col-md {
+        margin-bottom: 1rem;
+    }
+
+    .input-group {
+        flex-wrap: wrap;
+    }
+
+    .input-group input,
+    .input-group select,
+    .input-group button {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+
+    .input-group button {
+        margin-top: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    table {
+        font-size: 0.85rem;
+    }
+
+    #authStatus {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .output {
+        max-height: 200px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+
+    .container {
+        padding: 0 0.75rem;
+    }
+
+    .row.g-4 {
+        --bs-gutter-x: 0.75rem;
+        --bs-gutter-y: 0.75rem;
+    }
+
+    .card-body {
+        padding: 0.75rem;
+    }
+
+    .card-header {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.6rem;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+
+    .list-group-item {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .output {
+        max-height: 150px;
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #4c51bf 0%, #5a367a 100%);
+        color: #e9ecef;
+    }
+
+    .card {
+        background: #2d3748;
+        color: #e9ecef;
+        border-color: #4a5568;
+    }
+
+    .card-header {
+        background: #1a202c !important;
+        color: #e9ecef;
+        border-color: #4a5568;
+    }
+
+    .card-body {
+        background: #2d3748;
+        color: #e9ecef;
+    }
+
+    .list-group-item {
+        background: #2d3748;
+        color: #e2e8f0;
+        border-color: #4a5568;
+    }
+
+    .list-group-item:hover {
+        background: #4a5568;
+    }
+
+    .output {
+        background: #2d3748;
+        color: #e2e8f0;
+        border-color: #4a5568;
+    }
+
+    .form-control,
+    .form-select {
+        background: #374151;
+        color: #e9ecef;
+        border-color: #4a5568;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background: #374151;
+        border-color: #60a5fa;
+        color: #e9ecef;
+    }
+
+    .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    .form-label {
+        color: #e9ecef;
+    }
+
+    .navbar,
+    .navbar-dark {
+        background: #1a202c !important;
+    }
+
+    .navbar-nav .nav-link {
+        color: #a0aec0 !important;
+    }
+
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link.active {
+        color: #667eea !important;
+        background-color: #2d3748;
+    }
+
+    .text-muted {
+        color: #9ca3af !important;
+    }
+
+    #authStatus {
+        color: #a0aec0;
+    }
+
+    #authStatus strong {
+        color: #e2e8f0;
+    }
+
+    table {
+        color: #e9ecef;
+    }
+
+    table thead {
+        background: #1a202c;
+        color: #cbd5e0;
+    }
+
+    table tbody tr:hover {
+        background-color: #374151;
+    }
+
+    code {
+        background-color: #374151;
+        color: #60a5fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
 }

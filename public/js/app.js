@@ -1,21 +1,62 @@
 (function () {
     const tokenKey = 'family_life_token';
 
+    // ==== PAGE NAVIGATION ====
+    const navLinks = document.querySelectorAll('nav a[data-page]');
+    const pageSections = document.querySelectorAll('.page-section');
+
+    function showPage(pageName) {
+        // Hide all pages
+        pageSections.forEach(page => page.classList.add('d-none'));
+        
+        // Show selected page
+        const targetPage = document.getElementById('page-' + pageName);
+        if (targetPage) {
+            targetPage.classList.remove('d-none');
+        }
+
+        // Update nav links
+        navLinks.forEach(link => {
+            if (link.getAttribute('data-page') === pageName) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        // Refresh data for the page
+        if (pageName === 'setup') {
+            refreshAll();
+        } else if (pageName === 'tasks') {
+            refreshTasks();
+        } else if (pageName === 'claims') {
+            refreshClaims();
+        } else if (pageName === 'approvals') {
+            refreshMyClaims();
+        } else if (pageName === 'voting') {
+            refreshVoting();
+        } else if (pageName === 'scoreboard') {
+            refreshScoreboard();
+        }
+    }
+
+    // Navigation link handlers
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pageName = link.getAttribute('data-page');
+            showPage(pageName);
+        });
+    });
+
+    // ==== DOM ELEMENTS ====
     const authStatus = document.getElementById('authStatus');
     const tokenUrlPreview = document.getElementById('tokenUrlPreview');
     const setupOutput = document.getElementById('setupOutput');
     const meOutput = document.getElementById('meOutput');
     const reviewOutput = document.getElementById('reviewOutput');
 
-    const tasksList = document.getElementById('tasksList');
-    const claimsList = document.getElementById('claimsList');
-    const myClaimsList = document.getElementById('myClaimsList');
-    const scoreboardList = document.getElementById('scoreboardList');
-
-    const votingRoundOutput = document.getElementById('votingRoundOutput');
-    const votingActionOutput = document.getElementById('votingActionOutput');
-    const wishesList = document.getElementById('wishesList');
-
+    // ==== API HELPERS ====
     function getToken() {
         return localStorage.getItem(tokenKey) || '';
     }
@@ -28,6 +69,14 @@
         localStorage.setItem(tokenKey, token);
     }
 
+    function buildApiUrl(path) {
+        const [rawPath, rawQuery = ''] = path.split('?');
+        const cleanPath = (rawPath || '/').replace(/\/+$/, '') || '/';
+        const query = rawQuery ? '?' + rawQuery : '';
+
+        return '/api.php' + cleanPath + query;
+    }
+
     async function api(path, options) {
         const opts = options || {};
         const headers = opts.headers || {};
@@ -38,7 +87,7 @@
             headers.Authorization = 'Bearer ' + token;
         }
 
-        const response = await fetch('/api' + path, { ...opts, headers: headers });
+        const response = await fetch(buildApiUrl(path), { ...opts, headers: headers });
         const text = await response.text();
         const data = text ? JSON.parse(text) : {};
 
@@ -49,50 +98,112 @@
         return data;
     }
 
+    // ==== RENDERING HELPERS ====
     function print(el, data) {
         el.textContent = JSON.stringify(data, null, 2);
     }
 
-    function list(el, rows, map) {
-        el.innerHTML = '';
-        rows.forEach(function (row) {
+    function renderList(items, mapper) {
+        const ul = document.createElement('ul');
+        ul.className = 'list-group';
+        items.forEach(item => {
             const li = document.createElement('li');
             li.className = 'list-group-item';
-            li.textContent = map(row);
-            el.appendChild(li);
+            li.textContent = mapper(item);
+            ul.appendChild(li);
         });
+        return ul;
     }
 
-    async function fetchProceduralRankName(score, fallbackName) {
-        const safeScore = Number.isFinite(score) ? Math.max(0, Math.floor(score)) : 0;
-        const rankIndex = Math.floor(safeScore / 20);
-
-        try {
-            const data = await api('/rank-name?index=' + rankIndex);
-            return data.name || fallbackName || 'Unknown Rank';
-        } catch (error) {
-            return fallbackName || 'Unknown Rank';
+    function renderTasksList(tasks) {
+        const container = document.getElementById('tasksListContainer');
+        container.innerHTML = '';
+        if (tasks.length === 0) {
+            container.innerHTML = '<p class="text-muted">No tasks available.</p>';
+            return;
         }
+        const list = renderList(tasks, task => {
+            return '#' + task.id + ' | ' + task.name + ' | ' + task.points + ' pts | by member #' + task.created_by;
+        });
+        container.appendChild(list);
     }
 
+    function renderClaimsList(claims) {
+        const container = document.getElementById('claimsListContainer');
+        container.innerHTML = '';
+        if (claims.length === 0) {
+            container.innerHTML = '<p class="text-muted">No claims found.</p>';
+            return;
+        }
+        const list = renderList(claims, claim => {
+            return '#' + claim.id + ' | Task #' + claim.task_id + ' (' + claim.task_name + ') | ' + claim.claimed_by_name + ' | ' + claim.status;
+        });
+        container.appendChild(list);
+    }
+
+    function renderMyClaimsList(claims) {
+        const container = document.getElementById('myClaimsListContainer');
+        container.innerHTML = '';
+        if (claims.length === 0) {
+            container.innerHTML = '<p class="text-muted">No claims yet.</p>';
+            return;
+        }
+        const list = renderList(claims, claim => {
+            return '#' + claim.id + ' | Task #' + claim.task_id + ' (' + claim.task_name + ') | ' + claim.points + ' pts | ' + claim.status;
+        });
+        container.appendChild(list);
+    }
+
+    function renderWishesList(wishes) {
+        const container = document.getElementById('wishesListContainer');
+        container.innerHTML = '';
+        if (wishes.length === 0) {
+            container.innerHTML = '<p class="text-muted">No wishes yet.</p>';
+            return;
+        }
+        const list = renderList(wishes, wish => {
+            return '#' + wish.id + ' | ' + wish.name + ' | score: ' + wish.score + ' | by ' + wish.created_by_name;
+        });
+        container.appendChild(list);
+    }
+
+    function renderScoreboard(board) {
+        const container = document.getElementById('scoreboardContainer');
+        container.innerHTML = '';
+        if (board.length === 0) {
+            container.innerHTML = '<p class="text-muted">No members yet.</p>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table table-hover';
+        table.innerHTML = '<thead><tr><th>Position</th><th>Name</th><th>Score</th><th>Rank</th></tr></thead>';
+        
+        const tbody = document.createElement('tbody');
+        board.forEach(member => {
+            const row = tbody.insertRow();
+            row.innerHTML = '<td><strong>' + member.position + '</strong></td><td>' + member.name + '</td><td>' + member.score + ' pts</td><td>' + (member.rank || 'Unknown') + '</td>';
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
+    // ==== DATA REFRESH FUNCTIONS ====
     async function refreshMe() {
         const token = getToken();
         if (!token) {
-            authStatus.textContent = 'No member token selected';
+            authStatus.innerHTML = '<small class="text-muted">No member token selected</small>';
             meOutput.textContent = '';
             return;
         }
 
         try {
             const me = await api('/me');
-            const proceduralRankName = await fetchProceduralRankName(me.score, me.rank_name);
-            authStatus.textContent = me.name + ' | score: ' + me.score + ' | rank: ' + proceduralRankName;
-            print(meOutput, {
-                ...me,
-                procedural_rank_name: proceduralRankName
-            });
+            const rankName = me.rank_name || 'Unknown Rank';
+            authStatus.innerHTML = '<strong>' + me.name + '</strong> | score: ' + me.score + ' | rank: ' + rankName;
+            print(meOutput, me);
         } catch (error) {
-            authStatus.textContent = 'Token invalid';
+            authStatus.innerHTML = '<small class="text-danger">Token invalid</small>';
             meOutput.textContent = error.message;
         }
     }
@@ -100,11 +211,10 @@
     async function refreshTasks() {
         try {
             const tasks = await api('/tasks');
-            list(tasksList, tasks, function (task) {
-                return '#' + task.id + ' | ' + task.name + ' | ' + task.points + ' pts | creator #' + task.created_by;
-            });
+            renderTasksList(tasks);
         } catch (error) {
-            tasksList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            const container = document.getElementById('tasksListContainer');
+            container.innerHTML = '<div class="alert alert-danger"><small>' + error.message + '</small></div>';
         }
     }
 
@@ -112,65 +222,57 @@
         const filter = document.getElementById('claimFilter').value;
         try {
             const claims = await api('/claims?status=' + encodeURIComponent(filter));
-            list(claimsList, claims, function (claim) {
-                return '#' + claim.id + ' | Task #' + claim.task_id + ' (' + claim.task_name + ') | ' + claim.claimed_by_name + ' | ' + claim.status;
-            });
+            renderClaimsList(claims);
         } catch (error) {
-            claimsList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            const container = document.getElementById('claimsListContainer');
+            container.innerHTML = '<div class="alert alert-danger"><small>' + error.message + '</small></div>';
         }
     }
 
     async function refreshMyClaims() {
         try {
             const claims = await api('/claims/mine');
-            list(myClaimsList, claims, function (claim) {
-                return '#' + claim.id + ' | Task #' + claim.task_id + ' (' + claim.task_name + ') | ' + claim.points + ' pts | ' + claim.status;
-            });
+            renderMyClaimsList(claims);
         } catch (error) {
-            myClaimsList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            const container = document.getElementById('myClaimsListContainer');
+            container.innerHTML = '<div class="alert alert-danger"><small>' + error.message + '</small></div>';
         }
     }
 
     async function refreshScoreboard() {
         try {
             const board = await api('/scoreboard');
-            const items = await Promise.all(board.map(async function (member) {
-                const proceduralRankName = await fetchProceduralRankName(member.score, member.rank);
-                return member.position + '. ' + member.name + ' | ' + member.score + ' pts | ' + proceduralRankName;
-            }));
-
-            list(scoreboardList, items, function (item) {
-                return item;
-            });
+            renderScoreboard(board);
         } catch (error) {
-            scoreboardList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            const container = document.getElementById('scoreboardContainer');
+            container.innerHTML = '<div class="alert alert-danger"><small>' + error.message + '</small></div>';
         }
     }
 
     async function refreshVotingRound() {
         try {
             const round = await api('/voting/rounds/current');
-            print(votingRoundOutput, round);
+            print(document.getElementById('votingRoundOutput'), round);
             if (round && round.id) {
                 document.getElementById('closeRoundId').value = round.id;
                 document.getElementById('resultRoundId').value = round.id;
             }
         } catch (error) {
-            votingRoundOutput.textContent = error.message;
+            document.getElementById('votingRoundOutput').textContent = error.message;
         }
     }
 
     async function refreshWishes() {
         try {
             const wishes = await api('/voting/wishes');
-            list(wishesList, wishes, function (wish) {
-                return '#' + wish.id + ' | ' + wish.name + ' | score: ' + wish.score + ' | by ' + wish.created_by_name;
-            });
+            renderWishesList(wishes);
         } catch (error) {
-            wishesList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            const container = document.getElementById('wishesListContainer');
+            container.innerHTML = '<div class="alert alert-danger"><small>' + error.message + '</small></div>';
         }
     }
 
+    // ==== FORM HANDLERS ====
     document.getElementById('createFamilyForm').addEventListener('submit', async function (event) {
         event.preventDefault();
         const name = document.getElementById('familyName').value;
@@ -188,7 +290,7 @@
 
     document.getElementById('addMemberForm').addEventListener('submit', async function (event) {
         event.preventDefault();
-        const familyId = Number(document.getElementById('memberFamilyId').value);
+        const familyId = document.getElementById('memberFamilyId').value.trim();
         const name = document.getElementById('memberName').value;
 
         try {
@@ -227,9 +329,11 @@
                 method: 'POST',
                 body: JSON.stringify({ name: name, points: points })
             });
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskPoints').value = '';
             await refreshTasks();
         } catch (error) {
-            tasksList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            alert('Error: ' + error.message);
         }
     });
 
@@ -239,9 +343,10 @@
 
         try {
             await api('/tasks/' + taskId, { method: 'DELETE' });
+            document.getElementById('deleteTaskId').value = '';
             await refreshTasks();
         } catch (error) {
-            tasksList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            alert('Error: ' + error.message);
         }
     });
 
@@ -254,10 +359,11 @@
                 method: 'POST',
                 body: JSON.stringify({ task_id: taskId })
             });
-            await refreshClaims();
+            document.getElementById('claimTaskId').value = '';
+            await refreshTasks();
             await refreshMyClaims();
         } catch (error) {
-            claimsList.innerHTML = '<li class="list-group-item text-danger"><small>' + error.message + '</small></li>';
+            alert('Error: ' + error.message);
         }
     });
 
@@ -272,6 +378,7 @@
                 body: JSON.stringify({})
             });
             print(reviewOutput, result);
+            document.getElementById('reviewClaimId').value = '';
             await refreshAll();
         } catch (error) {
             reviewOutput.textContent = error.message;
@@ -281,10 +388,10 @@
     document.getElementById('createRoundBtn').addEventListener('click', async function () {
         try {
             const result = await api('/voting/rounds', { method: 'POST', body: JSON.stringify({}) });
-            print(votingActionOutput, result);
+            print(document.getElementById('votingActionOutput'), result);
             await refreshVoting();
         } catch (error) {
-            votingActionOutput.textContent = error.message;
+            document.getElementById('votingActionOutput').textContent = error.message;
         }
     });
 
@@ -297,10 +404,11 @@
                 method: 'POST',
                 body: JSON.stringify({ name: name })
             });
-            print(votingActionOutput, result);
+            print(document.getElementById('votingActionOutput'), result);
+            document.getElementById('wishName').value = '';
             await refreshVoting();
         } catch (error) {
-            votingActionOutput.textContent = error.message;
+            document.getElementById('votingActionOutput').textContent = error.message;
         }
     });
 
@@ -314,11 +422,13 @@
                 method: 'POST',
                 body: JSON.stringify({ wish_id: wishId, amount: amount })
             });
-            print(votingActionOutput, result);
+            print(document.getElementById('votingActionOutput'), result);
+            document.getElementById('voteWishId').value = '';
+            document.getElementById('voteAmount').value = '';
             await refreshVoting();
             await refreshMe();
         } catch (error) {
-            votingActionOutput.textContent = error.message;
+            document.getElementById('votingActionOutput').textContent = error.message;
         }
     });
 
@@ -331,10 +441,11 @@
                 method: 'POST',
                 body: JSON.stringify({})
             });
-            print(votingActionOutput, result);
+            print(document.getElementById('votingActionOutput'), result);
             await refreshVoting();
+            await refreshMe();
         } catch (error) {
-            votingActionOutput.textContent = error.message;
+            document.getElementById('votingActionOutput').textContent = error.message;
         }
     });
 
@@ -344,12 +455,14 @@
 
         try {
             const result = await api('/voting/rounds/' + roundId + '/result');
-            print(votingActionOutput, result);
+            print(document.getElementById('votingActionOutput'), result);
         } catch (error) {
-            votingActionOutput.textContent = error.message;
+            document.getElementById('votingActionOutput').textContent = error.message;
         }
     });
 
+    // Refresh buttons
+    document.getElementById('refreshTasksBtn').addEventListener('click', refreshTasks);
     document.getElementById('refreshClaimsBtn').addEventListener('click', refreshClaims);
     document.getElementById('claimFilter').addEventListener('change', refreshClaims);
     document.getElementById('refreshMyClaimsBtn').addEventListener('click', refreshMyClaims);
@@ -376,5 +489,6 @@
         await refreshVoting();
     }
 
-    refreshAll();
+    // Initial setup
+    showPage('setup');
 })();

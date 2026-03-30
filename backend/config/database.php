@@ -396,3 +396,35 @@ function tableColumnType(PDO $pdo, string $tableName, string $columnName): ?stri
 
     return null;
 }
+
+function reinitializeDatabase(): void
+{
+    $pdo = new PDO('sqlite:' . DB_PATH);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $pdo->exec('PRAGMA foreign_keys = OFF');
+
+    $stmt = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+    $tables = $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+
+    foreach ($tables as $table) {
+        $pdo->exec('DROP TABLE IF EXISTS ' . $table);
+    }
+
+    $pdo->exec('PRAGMA foreign_keys = ON');
+
+    initializeSchema($pdo);
+}
+
+function listFamilies(): array
+{
+    $pdo = db();
+    $stmt = $pdo->query(
+        'SELECT f.id, f.name, f.created_at, COUNT(fm.id) AS member_count
+         FROM families f
+         LEFT JOIN family_members fm ON fm.family_id = f.id
+         GROUP BY f.id
+         ORDER BY f.created_at DESC'
+    );
+    return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+}
