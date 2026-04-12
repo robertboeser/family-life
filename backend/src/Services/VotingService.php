@@ -207,6 +207,13 @@ final class VotingService
         ];
     }
 
+    public function getVotingBalance(int $memberId, int $memberScore): array
+    {
+        return [
+            'available_points' => $this->getMemberVotingBalance($memberId, $memberScore),
+        ];
+    }
+
     public function approveCloseRound(string $familyId, int $memberId, int $roundId): array
     {
         $roundStmt = $this->pdo->prepare(

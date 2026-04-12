@@ -12,7 +12,7 @@
         <div class="container">
             <span class="navbar-brand fw-semibold">Family Life</span>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <a href="/index.php" class="btn btn-sm btn-outline-secondary">Start Page</a>
+                <a href="/index.html" class="btn btn-sm btn-outline-secondary">Start Page</a>
                 <button id="logoutBtn" class="btn btn-sm btn-outline-danger" type="button">Logout</button>
             </div>
         </div>
@@ -28,6 +28,8 @@
                     <p id="memberSummary" class="mb-0 text-muted">Loading profile...</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
+                    <a id="votingLink" href="/voting.html" class="btn btn-sm btn-outline-secondary">Voting</a>
+                    <a id="tasksLink" href="/tasks.html" class="btn btn-sm btn-outline-secondary">Tasks</a>
                     <button id="copyLinkBtn" class="btn btn-sm btn-outline-secondary" type="button">Copy Access Link</button>
                     <a id="addMemberLink" href="/add-member.html" class="btn btn-sm btn-outline-primary">+ Add Member</a>
                 </div>
@@ -39,9 +41,25 @@
                 <section class="card shadow-sm h-100">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h2 class="h6 mb-0">Current Claims</h2>
-                        <button id="refreshClaimsBtn" class="btn btn-sm btn-outline-primary" type="button">Refresh</button>
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="showClaimTaskBtn" class="btn btn-sm btn-outline-secondary" type="button">Claim Task</button>
+                            <button id="refreshClaimsBtn" class="btn btn-sm btn-outline-primary" type="button">Refresh</button>
+                        </div>
                     </div>
                     <div class="card-body">
+                        <form id="claimTaskForm" class="row g-2 mb-3 d-none" novalidate>
+                            <div class="col-12 col-md-8">
+                                <label for="claimTaskSelect" class="form-label mb-1">Choose a family task</label>
+                                <select id="claimTaskSelect" class="form-select form-select-sm" required>
+                                    <option value="">Select a task...</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-4 d-flex align-items-end gap-2">
+                                <button id="submitClaimTaskBtn" class="btn btn-sm btn-primary w-100" type="submit">Claim</button>
+                                <button id="cancelClaimTaskBtn" class="btn btn-sm btn-outline-secondary" type="button">Cancel</button>
+                            </div>
+                        </form>
+                        <div id="claimTaskStatus" class="alert d-none mb-3 py-2" role="alert"></div>
                         <div id="claimsContainer" class="table-responsive"></div>
                     </div>
                 </section>
