@@ -1,0 +1,28 @@
+body {
+    min-height: 100vh;
+    background: radial-gradient(circle at 0% 0%, #fef3c7 0%, #fff7ed 45%, #f8fafc 100%);
+    color: #1f2937;
+}
+
+.hero {
+    border: 0;
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+    color: #f9fafb;
+}
+
+.eyebrow {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #fbbf24;
+    font-weight: 700;
+}
+
+.card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.table th {
+    font-weight: 600;
+}
