@@ -86,10 +86,18 @@ final class FamilyService
     {
         $rank = $this->rankService->rankFromScore((int)$member['score']);
 
+        $stmt = $this->pdo->prepare(
+            'SELECT name FROM families WHERE id = :family_id LIMIT 1'
+        );
+        $stmt->execute([':family_id' => (string)$member['family_id']]);
+        $family = $stmt->fetch();
+        $familyName = $family ? $family['name'] : 'Unknown Family';
+
         return [
             'id' => (int)$member['id'],
             'name' => $member['name'],
             'family_id' => (string)$member['family_id'],
+            'family_name' => $familyName,
             'score' => (int)$member['score'],
             'rank' => $rank['rank'],
             'rank_name' => $rank['name'],

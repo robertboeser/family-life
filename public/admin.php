@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../backend/config/constants.php';
-require_once __DIR__ . '/../backend/config/database.php';
+chdir(dirname(__DIR__));
+require_once 'backend/config/constants.php';
+require_once 'backend/config/database.php';
 
 session_start();
 

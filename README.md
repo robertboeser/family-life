@@ -43,6 +43,10 @@ Current focus: stabilization, test coverage, and UX polish (Phase 3).
 - `public/js/app.js` - frontend logic
 - `public/css/styles.css` - frontend styles
 
+## Runtime Convention
+
+Directly called PHP entry files set the working directory to the project root via `chdir(...)` at the top of the file. This keeps relative paths consistent and simplifies file access from all entrypoints.
+
 ## Next
 
 - Add automated tests for service and routing edge cases
