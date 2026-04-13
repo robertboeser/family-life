@@ -1,4 +1,6 @@
 (function () {
+    const i18n = window.FamilyLifeTranslations || {};
+    const locale = i18n.locale || 'en-US';
     const authError = document.getElementById('authError');
     const familyInfo = document.getElementById('familyInfo');
     const tasksContainer = document.getElementById('tasksContainer');
@@ -6,6 +8,10 @@
     const createTaskForm = document.getElementById('createTaskForm');
     const createTaskSubmitBtn = document.getElementById('createTaskSubmitBtn');
     const status = document.getElementById('status');
+
+    function t(key, fallback) {
+        return Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
+    }
 
     function showAuthError(message) {
         authError.textContent = message;
@@ -24,7 +30,7 @@
 
     function setCreateBusy(isBusy) {
         createTaskSubmitBtn.disabled = isBusy;
-        createTaskSubmitBtn.textContent = isBusy ? 'Creating...' : 'Create Task';
+        createTaskSubmitBtn.textContent = isBusy ? t('creating', 'Creating...') : t('create_task', 'Create Task');
     }
 
     function escapeHtml(value) {
@@ -38,7 +44,7 @@
 
     function formatDate(value) {
         if (!value) {
-            return 'Unknown';
+            return t('unknown', 'Unknown');
         }
 
         const date = new Date(value);
@@ -46,12 +52,12 @@
             return value;
         }
 
-        return date.toLocaleString();
+        return date.toLocaleString(locale);
     }
 
     function renderTasks(tasks) {
         if (!Array.isArray(tasks) || tasks.length === 0) {
-            tasksContainer.innerHTML = '<p class="text-muted mb-0">No tasks yet.</p>';
+            tasksContainer.innerHTML = '<p class="text-muted mb-0">' + t('no_tasks', 'No tasks yet.') + '</p>';
             return;
         }
 
@@ -65,7 +71,7 @@
         }).join('');
 
         tasksContainer.innerHTML = '<table class="table table-sm align-middle mb-0">'
-            + '<thead><tr><th>ID</th><th>Task</th><th>Points</th><th>Created</th></tr></thead>'
+            + '<thead><tr><th>ID</th><th>' + t('task', 'Task') + '</th><th>' + t('points', 'Points') + '</th><th>' + t('created', 'Created') + '</th></tr></thead>'
             + '<tbody>' + rows + '</tbody>'
             + '</table>';
     }
@@ -91,16 +97,16 @@
     async function init() {
         const token = window.FamilyLifeAuth.getToken();
         if (!token) {
-            showAuthError('Login required. Use a member token in the URL hash (#token=...) or create a family on the start page.');
-            window.location.href = '/index.html';
+            showAuthError(t('login_required_long', 'Login required. Use a member token in the URL hash (#token=...) or create a family on the start page.'));
+            window.location.href = '/index.php';
             return;
         }
 
-        document.getElementById('backBtn').href = '/dashboard.html#token=' + encodeURIComponent(token);
+        document.getElementById('backBtn').href = '/dashboard.php#token=' + encodeURIComponent(token);
 
         try {
             const me = await window.FamilyLifeAuth.api('/me');
-            familyInfo.textContent = 'Tasks for ' + me.family_name;
+            familyInfo.textContent = t('tasks_for', 'Tasks for ') + me.family_name;
             await loadTasks();
         } catch (error) {
             showAuthError(error.message);
@@ -109,7 +115,7 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
-        window.location.href = '/index.html';
+        window.location.href = '/index.php';
     });
 
     document.getElementById('refreshTasksBtn').addEventListener('click', function () {
@@ -133,12 +139,12 @@
         const points = parseInt(document.getElementById('taskPoints').value, 10);
 
         if (!name) {
-            showStatus('Please provide a task name.', 'warning');
+            showStatus(t('task_name_required', 'Please provide a task name.'), 'warning');
             return;
         }
 
         if (!Number.isInteger(points) || points <= 0) {
-            showStatus('Points must be a positive number.', 'warning');
+            showStatus(t('points_positive', 'Points must be a positive number.'), 'warning');
             return;
         }
 
@@ -151,7 +157,7 @@
                 points: points
             })
         }).then(function () {
-            showStatus('Task created successfully.', 'success');
+            showStatus(t('task_created_success', 'Task created successfully.'), 'success');
             return loadTasks();
         }).then(function () {
             setCreateBusy(false);

@@ -5,12 +5,14 @@ declare(strict_types=1);
 chdir(dirname(__DIR__));
 require_once 'backend/config/constants.php';
 require_once 'backend/config/database.php';
+require_once 'public/includes/i18n.php';
 
 session_start();
 
 $error = '';
 $message = '';
 $families = [];
+$lang = uiLang($_SERVER);
 
 // Handle logout
 if (isset($_POST['action']) && $_POST['action'] === 'logout') {
@@ -26,7 +28,7 @@ if (!isset($_SESSION['admin_authenticated'])) {
             session_regenerate_id(true);
             $_SESSION['admin_authenticated'] = true;
         } else {
-            $error = 'Invalid password.';
+            $error = tm($lang, 'admin', 'invalid_password');
         }
     }
 }
@@ -36,7 +38,7 @@ if (isset($_SESSION['admin_authenticated'])) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if ($_POST['action'] === 'reinitialize') {
             reinitializeDatabase();
-            $message = 'Database has been re-initialized. All data has been erased.';
+            $message = tm($lang, 'admin', 'db_reinitialized');
         }
     }
 
@@ -45,22 +47,22 @@ if (isset($_SESSION['admin_authenticated'])) {
 
 $isAuthenticated = isset($_SESSION['admin_authenticated']);
 ?><!doctype html>
-<html lang="en">
+<html lang="<?= $lang ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Admin — Family Life</title>
+    <title><?= tp($lang, 'admin', 'title') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
     <div class="container">
-        <span class="navbar-brand fw-bold">🏡 Family Life — Admin</span>
+        <span class="navbar-brand fw-bold">🏡 Family Life - Admin</span>
         <?php if ($isAuthenticated): ?>
         <form method="POST" class="ms-auto">
             <input type="hidden" name="action" value="logout">
-            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+            <button type="submit" class="btn btn-outline-light btn-sm"><?= tp($lang, 'admin', 'logout') ?></button>
         </form>
         <?php endif; ?>
     </div>
@@ -72,16 +74,16 @@ $isAuthenticated = isset($_SESSION['admin_authenticated']);
 
     <div class="card shadow-sm">
         <div class="card-body p-4">
-            <h4 class="card-title mb-3">Admin Login</h4>
+            <h4 class="card-title mb-3"><?= tp($lang, 'admin', 'login_title') ?></h4>
             <?php if ($error !== ''): ?>
                 <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
             <?php endif; ?>
             <form method="POST">
                 <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
+                    <label for="password" class="form-label"><?= tp($lang, 'admin', 'password') ?></label>
                     <input type="password" class="form-control" id="password" name="password" autofocus required>
                 </div>
-                <button type="submit" class="btn btn-dark">Login</button>
+                <button type="submit" class="btn btn-dark"><?= tp($lang, 'admin', 'login') ?></button>
             </form>
         </div>
     </div>
@@ -97,18 +99,18 @@ $isAuthenticated = isset($_SESSION['admin_authenticated']);
 
     <!-- Families -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white fw-semibold">Families (<?= count($families) ?>)</div>
+        <div class="card-header bg-white fw-semibold"><?= tp($lang, 'admin', 'families') ?> (<?= count($families) ?>)</div>
         <div class="card-body p-0">
             <?php if ($families === []): ?>
-                <p class="text-muted p-3 mb-0">No families found.</p>
+                <p class="text-muted p-3 mb-0"><?= tp($lang, 'admin', 'no_families') ?></p>
             <?php else: ?>
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Name</th>
-                            <th>Members</th>
-                            <th>Created</th>
+                            <th><?= tp($lang, 'admin', 'name') ?></th>
+                            <th><?= tp($lang, 'admin', 'members') ?></th>
+                            <th><?= tp($lang, 'admin', 'created') ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,14 +130,14 @@ $isAuthenticated = isset($_SESSION['admin_authenticated']);
 
     <!-- Danger zone -->
     <div class="card shadow-sm border-danger">
-        <div class="card-header bg-danger text-white fw-semibold">Danger Zone</div>
+        <div class="card-header bg-danger text-white fw-semibold"><?= tp($lang, 'admin', 'danger_zone') ?></div>
         <div class="card-body">
-            <h6 class="card-title">Re-initialize Database</h6>
+            <h6 class="card-title"><?= tp($lang, 'admin', 'reinit_db') ?></h6>
             <p class="card-text text-muted small">
-                Drops all tables and recreates the schema. <strong>All data will be permanently lost.</strong>
+                <?= tp($lang, 'admin', 'drop_warning_prefix') ?><strong><?= tp($lang, 'admin', 'drop_warning_strong') ?></strong>
             </p>
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#reinitModal">
-                Re-initialize Database
+                <?= tp($lang, 'admin', 'reinit_db') ?>
             </button>
         </div>
     </div>
@@ -151,15 +153,15 @@ $isAuthenticated = isset($_SESSION['admin_authenticated']);
             <input type="hidden" name="action" value="reinitialize">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="reinitModalLabel">Confirm Re-initialization</h5>
+                    <h5 class="modal-title" id="reinitModalLabel"><?= tp($lang, 'admin', 'confirm_reinit') ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    Are you sure you want to <strong>erase all data</strong> and re-initialize the database? This action cannot be undone.
+                    <?= tp($lang, 'admin', 'confirm_prefix') ?><strong><?= tp($lang, 'admin', 'confirm_strong') ?></strong><?= tp($lang, 'admin', 'confirm_suffix') ?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Yes, re-initialize</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= tp($lang, 'admin', 'cancel') ?></button>
+                    <button type="submit" class="btn btn-danger"><?= tp($lang, 'admin', 'yes_reinit') ?></button>
                 </div>
             </div>
         </form>

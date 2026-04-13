@@ -1,7 +1,12 @@
 (function () {
+    const i18n = window.FamilyLifeTranslations || {};
     const form = document.getElementById('onboardForm');
     const submitBtn = document.getElementById('submitBtn');
     const status = document.getElementById('status');
+
+    function t(key, fallback) {
+        return Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
+    }
 
     function showStatus(message, type) {
         status.textContent = message;
@@ -10,7 +15,7 @@
 
     function setBusy(isBusy) {
         submitBtn.disabled = isBusy;
-        submitBtn.textContent = isBusy ? 'Creating...' : 'Create Family + Member';
+        submitBtn.textContent = isBusy ? t('creating', 'Creating...') : t('create_family_member_btn', 'Create Family + Member');
     }
 
     form.addEventListener('submit', async function (event) {
@@ -20,7 +25,7 @@
         const memberName = document.getElementById('memberName').value.trim();
 
         if (!familyName || !memberName) {
-            showStatus('Please provide both names.', 'warning');
+            showStatus(t('both_names_required', 'Please provide both names.'), 'warning');
             return;
         }
 
@@ -37,7 +42,7 @@
                 body: JSON.stringify({ name: memberName })
             });
 
-            window.location.href = '/dashboard.html#token=' + encodeURIComponent(member.auth_token);
+            window.location.href = '/dashboard.php#token=' + encodeURIComponent(member.auth_token);
         } catch (error) {
             showStatus(error.message, 'danger');
             setBusy(false);

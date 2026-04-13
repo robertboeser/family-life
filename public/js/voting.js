@@ -1,4 +1,5 @@
 (function () {
+    const i18n = window.FamilyLifeTranslations || {};
     const authError = document.getElementById('authError');
     const votingSummary = document.getElementById('votingSummary');
     const votingBalance = document.getElementById('votingBalance');
@@ -20,6 +21,10 @@
     let currentRoundId = null;
     let currentCloseApprovals = 0;
     let currentRequiredApprovals = 1;
+
+    function t(key, fallback) {
+        return Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
+    }
 
     function showAuthError(message) {
         authError.textContent = message;
@@ -58,7 +63,7 @@
 
     function setCreateBusy(isBusy) {
         createWishSubmitBtn.disabled = isBusy;
-        createWishSubmitBtn.textContent = isBusy ? 'Creating...' : 'Create Wish';
+        createWishSubmitBtn.textContent = isBusy ? t('creating', 'Creating...') : t('create_wish', 'Create Wish');
     }
 
     function escapeHtml(value) {
@@ -88,22 +93,22 @@
 
         if (!Array.isArray(wishes) || wishes.length === 0) {
             if (currentRoundStatus === 'open') {
-                wishesContainer.innerHTML = '<p class="text-muted mb-0">No active wishes yet.</p>';
+                wishesContainer.innerHTML = '<p class="text-muted mb-0">' + t('no_active_wishes', 'No active wishes yet.') + '</p>';
                 return;
             }
 
-            wishesContainer.innerHTML = '<p class="text-muted mb-0">No open voting round right now.</p>';
+            wishesContainer.innerHTML = '<p class="text-muted mb-0">' + t('no_open_round', 'No open voting round right now.') + '</p>';
             return;
         }
 
         const rows = wishes.map(function (wish) {
-            const ownerLabel = wish.created_by === currentMemberId ? ' <span class="badge text-bg-primary">Yours</span>' : '';
+            const ownerLabel = wish.created_by === currentMemberId ? ' <span class="badge text-bg-primary">' + t('yours', 'Yours') + '</span>' : '';
             const actionCell = currentAvailablePoints > 0
                 ? '<div class="d-flex gap-2 align-items-center">'
                     + '<input class="form-control form-control-sm" type="number" min="1" max="' + currentAvailablePoints + '" value="1" data-vote-amount-for="' + wish.id + '">'
-                    + '<button class="btn btn-sm btn-outline-primary" type="button" data-vote-wish-id="' + wish.id + '">Vote</button>'
+                    + '<button class="btn btn-sm btn-outline-primary" type="button" data-vote-wish-id="' + wish.id + '">' + t('vote', 'Vote') + '</button>'
                     + '</div>'
-                : '<span class="text-muted small">No usable points</span>';
+                : '<span class="text-muted small">' + t('no_usable_points', 'No usable points') + '</span>';
 
             return '<tr>'
                 + '<td>#' + wish.id + '</td>'
@@ -115,14 +120,14 @@
         }).join('');
 
         wishesContainer.innerHTML = '<table class="table table-sm align-middle mb-0">'
-            + '<thead><tr><th>ID</th><th>Wish</th><th>Score</th><th>Created By</th><th>Vote</th></tr></thead>'
+            + '<thead><tr><th>ID</th><th>' + t('wish', 'Wish') + '</th><th>' + t('score', 'Score') + '</th><th>' + t('created_by', 'Created By') + '</th><th>' + t('vote', 'Vote') + '</th></tr></thead>'
             + '<tbody>' + rows + '</tbody>'
             + '</table>';
     }
 
     function renderWinners(winners) {
         if (!Array.isArray(winners) || winners.length === 0) {
-            winnersContainer.innerHTML = '<p class="text-muted mb-0">No winning wishes yet.</p>';
+            winnersContainer.innerHTML = '<p class="text-muted mb-0">' + t('no_winners', 'No winning wishes yet.') + '</p>';
             return;
         }
 
@@ -136,19 +141,19 @@
         }).join('');
 
         winnersContainer.innerHTML = '<table class="table table-sm align-middle mb-0">'
-            + '<thead><tr><th>Round</th><th>Wish</th><th>Score</th><th>Winner</th></tr></thead>'
+            + '<thead><tr><th>' + t('round', 'Round') + '</th><th>' + t('wish', 'Wish') + '</th><th>' + t('score', 'Score') + '</th><th>' + t('winner', 'Winner') + '</th></tr></thead>'
             + '<tbody>' + rows + '</tbody>'
             + '</table>';
     }
 
     function renderCloseRoundState() {
         if (currentRoundStatus !== 'open' || currentRoundId === null) {
-            closeRoundInfo.textContent = 'No open round to close right now.';
+            closeRoundInfo.textContent = t('no_open_round_to_close', 'No open round to close right now.');
             closeRoundBtn.disabled = true;
             return;
         }
 
-        closeRoundInfo.textContent = 'Approvals: ' + currentCloseApprovals + ' / ' + currentRequiredApprovals;
+        closeRoundInfo.textContent = t('approvals', 'Approvals: ') + currentCloseApprovals + ' / ' + currentRequiredApprovals;
         closeRoundBtn.disabled = false;
     }
 
@@ -185,12 +190,12 @@
 
         const balance = await window.FamilyLifeAuth.api('/voting/balance');
         currentAvailablePoints = balance.available_points;
-        votingBalance.textContent = 'Usable points: ' + balance.available_points;
+        votingBalance.textContent = t('usable_points', 'Usable points: ') + balance.available_points;
 
         if (round.status === 'open') {
-            votingSummary.textContent = 'Open voting round for ' + me.family_name;
+            votingSummary.textContent = t('open_round_for', 'Open voting round for ') + me.family_name;
         } else {
-            votingSummary.textContent = 'No open voting round for ' + me.family_name;
+            votingSummary.textContent = t('no_open_round_for', 'No open voting round for ') + me.family_name;
         }
 
         const wishes = await window.FamilyLifeAuth.api('/voting/wishes');
@@ -205,12 +210,12 @@
     function init() {
         const token = window.FamilyLifeAuth.getToken();
         if (!token) {
-            showAuthError('Login required. Use a member token in the URL hash (#token=...) or create a family on the start page.');
-            window.location.href = '/index.html';
+            showAuthError(t('login_required_long', 'Login required. Use a member token in the URL hash (#token=...) or create a family on the start page.'));
+            window.location.href = '/index.php';
             return;
         }
 
-        document.getElementById('backBtn').href = '/dashboard.html#token=' + encodeURIComponent(token);
+        document.getElementById('backBtn').href = '/dashboard.php#token=' + encodeURIComponent(token);
 
         refreshVotingPage().catch(function (error) {
             showAuthError(error.message);
@@ -219,7 +224,7 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
-        window.location.href = '/index.html';
+        window.location.href = '/index.php';
     });
 
     document.getElementById('refreshVotingBtn').addEventListener('click', function () {
@@ -236,17 +241,17 @@
         }
 
         closeRoundBtn.disabled = true;
-        closeRoundBtn.textContent = 'Submitting...';
+        closeRoundBtn.textContent = t('submitting', 'Submitting...');
         hideCloseRoundStatus();
 
         window.FamilyLifeAuth.api('/voting/rounds/' + currentRoundId + '/approve-close', {
             method: 'POST'
         }).then(function (result) {
             if (result.status === 'closed') {
-                showCloseRoundStatus('Round closed. Winning wish: ' + result.closed_wish_name + '. A new round was created.', 'success');
+                showCloseRoundStatus(t('round_closed_prefix', 'Round closed. Winning wish: ') + result.closed_wish_name + t('round_closed_suffix', '. A new round was created.'), 'success');
             } else {
                 showCloseRoundStatus(
-                    'Close approval recorded (' + result.approvals_count + ' / ' + (result.required_approvals || currentRequiredApprovals) + ').',
+                    t('close_approval_recorded', 'Close approval recorded (') + result.approvals_count + ' / ' + (result.required_approvals || currentRequiredApprovals) + ').',
                     'info'
                 );
             }
@@ -256,7 +261,7 @@
             showCloseRoundStatus(error.message, 'danger');
         }).finally(function () {
             closeRoundBtn.disabled = false;
-            closeRoundBtn.textContent = 'Approve Closing Round';
+            closeRoundBtn.textContent = t('approve_closing_round', 'Approve Closing Round');
         });
     });
 
@@ -275,17 +280,17 @@
         }
 
         if (!Number.isInteger(amount) || amount <= 0) {
-            showVoteStatus('Please enter a valid vote amount.', 'warning');
+            showVoteStatus(t('vote_amount_invalid', 'Please enter a valid vote amount.'), 'warning');
             return;
         }
 
         if (amount > currentAvailablePoints) {
-            showVoteStatus('Vote amount exceeds your usable points.', 'warning');
+            showVoteStatus(t('vote_amount_exceeds', 'Vote amount exceeds your usable points.'), 'warning');
             return;
         }
 
         voteButton.disabled = true;
-        voteButton.textContent = 'Voting...';
+        voteButton.textContent = t('voting', 'Voting...');
         hideVoteStatus();
 
         window.FamilyLifeAuth.api('/voting/votes', {
@@ -295,14 +300,14 @@
                 amount: amount
             })
         }).then(function () {
-            showVoteStatus('Vote added successfully.', 'success');
+            showVoteStatus(t('vote_added_success', 'Vote added successfully.'), 'success');
             return refreshVotingPage();
         }).catch(function (error) {
             showVoteStatus(error.message, 'danger');
         }).finally(function () {
             if (document.body.contains(voteButton)) {
                 voteButton.disabled = false;
-                voteButton.textContent = 'Vote';
+                voteButton.textContent = t('vote', 'Vote');
             }
         });
     });
@@ -324,7 +329,7 @@
 
         const wishName = document.getElementById('wishName').value.trim();
         if (!wishName) {
-            showWishStatus('Please provide a wish name.', 'warning');
+            showWishStatus(t('wish_name_required', 'Please provide a wish name.'), 'warning');
             return;
         }
 
@@ -335,7 +340,7 @@
             method: 'POST',
             body: JSON.stringify({ name: wishName })
         }).then(function () {
-            showWishStatus('Wish created successfully.', 'success');
+            showWishStatus(t('wish_created_success', 'Wish created successfully.'), 'success');
             return refreshVotingPage();
         }).then(function () {
             setCreateBusy(false);
