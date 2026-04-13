@@ -54,7 +54,7 @@
             </div>
         </section>
 
-        <section class="card shadow-sm">
+        <section class="card shadow-sm mb-4">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h2 class="h6 mb-0">Active Wishes</h2>
                 <button id="refreshVotingBtn" class="btn btn-sm btn-outline-primary" type="button">Refresh</button>
@@ -62,6 +62,26 @@
             <div class="card-body">
                 <div id="voteStatus" class="alert d-none mb-3" role="alert"></div>
                 <div id="wishesContainer" class="table-responsive"></div>
+            </div>
+        </section>
+
+        <section class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Close Current Round</h2>
+                <button id="closeRoundBtn" class="btn btn-sm btn-outline-danger" type="button">Approve Closing Round</button>
+            </div>
+            <div class="card-body">
+                <p id="closeRoundInfo" class="small text-muted mb-2">Loading close-round status...</p>
+                <div id="closeRoundStatus" class="alert d-none mb-0" role="alert"></div>
+            </div>
+        </section>
+
+        <section class="card shadow-sm mt-4">
+            <div class="card-header bg-white">
+                <h2 class="h6 mb-0">Winning Wishes</h2>
+            </div>
+            <div class="card-body">
+                <div id="winnersContainer" class="table-responsive"></div>
             </div>
         </section>
     </main>

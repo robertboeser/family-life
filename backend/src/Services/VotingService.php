@@ -18,6 +18,7 @@ final class VotingService
     public function getCurrentRound(string $familyId): array
     {
         $round = $this->getOpenRound($familyId);
+        $requiredApprovals = $this->getRequiredClosureApprovals($familyId);
 
         if ($round === null) {
             return [
@@ -25,6 +26,7 @@ final class VotingService
                 'status' => 'none',
                 'created_at' => null,
                 'closure_approvals_count' => 0,
+                'required_close_approvals' => $requiredApprovals,
             ];
         }
 
@@ -33,6 +35,7 @@ final class VotingService
             'status' => $round['status'],
             'created_at' => $round['created_at'],
             'closure_approvals_count' => $this->getRoundClosureApprovalsCount((int)$round['id']),
+            'required_close_approvals' => $requiredApprovals,
         ];
     }
 
@@ -214,6 +217,39 @@ final class VotingService
         ];
     }
 
+    public function listWinningWishes(string $familyId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT r.id AS round_id, r.closed_at,
+                    w.id AS wish_id, w.name AS wish_name, w.score AS wish_score,
+                    m.name AS winner_name
+             FROM voting_rounds r
+             INNER JOIN wishes w ON w.id = r.closed_wish_id
+             INNER JOIN family_members m ON m.id = w.created_by
+             WHERE r.family_id = :family_id
+               AND r.status = :status
+             ORDER BY r.id DESC'
+        );
+        $stmt->execute([
+            ':family_id' => $familyId,
+            ':status' => 'closed',
+        ]);
+
+        $winners = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $winners[] = [
+                'round_id' => (int)$row['round_id'],
+                'wish_id' => (int)$row['wish_id'],
+                'wish_name' => $row['wish_name'],
+                'wish_score' => (int)$row['wish_score'],
+                'winner_name' => $row['winner_name'],
+                'closed_at' => $row['closed_at'],
+            ];
+        }
+
+        return $winners;
+    }
+
     public function approveCloseRound(string $familyId, int $memberId, int $roundId): array
     {
         $roundStmt = $this->pdo->prepare(
@@ -243,11 +279,14 @@ final class VotingService
         ]);
 
         $approvalsCount = $this->getRoundClosureApprovalsCount($roundId);
-        if ($approvalsCount < 2) {
+        $requiredApprovals = $this->getRequiredClosureApprovals($familyId);
+
+        if ($approvalsCount < $requiredApprovals) {
             return [
                 'round_id' => $roundId,
                 'status' => 'open',
                 'approvals_count' => $approvalsCount,
+                'required_approvals' => $requiredApprovals,
             ];
         }
 
@@ -281,6 +320,18 @@ final class VotingService
                 ':id' => (int)$winner['id'],
             ]);
 
+            $createNextRoundStmt = $this->pdo->prepare(
+                'INSERT INTO voting_rounds (family_id, status, updated_at)
+                 VALUES (:family_id, :status, :now)'
+            );
+            $createNextRoundStmt->execute([
+                ':family_id' => $familyId,
+                ':status' => 'open',
+                ':now' => Clock::now(),
+            ]);
+
+            $newRoundId = (int)$this->pdo->lastInsertId();
+
             $this->pdo->commit();
         } catch (Throwable $exception) {
             $this->pdo->rollBack();
@@ -291,6 +342,10 @@ final class VotingService
             'round_id' => $roundId,
             'status' => 'closed',
             'approvals_count' => $approvalsCount,
+            'required_approvals' => $requiredApprovals,
+            'closed_wish_id' => (int)$winner['id'],
+            'closed_wish_name' => $winner['name'],
+            'new_round_id' => $newRoundId,
         ];
     }
 
@@ -381,5 +436,18 @@ final class VotingService
 
         $row = $stmt->fetch();
         return $row === false ? null : $row;
+    }
+
+    private function getRequiredClosureApprovals(string $familyId): int
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) AS total
+             FROM family_members
+             WHERE family_id = :family_id'
+        );
+        $stmt->execute([':family_id' => $familyId]);
+
+        $memberCount = (int)($stmt->fetch()['total'] ?? 0);
+        return $memberCount > 2 ? 2 : 1;
     }
 }

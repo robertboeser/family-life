@@ -208,6 +208,11 @@ try {
         $responder->send($votingService->getVotingBalance((int)$member['id'], (int)$member['score']));
     }
 
+    if ($uri === '/voting/winners' && $method === 'GET') {
+        $member = $authService->requireMember();
+        $responder->send($votingService->listWinningWishes((string)$member['family_id']));
+    }
+
     if ($uri === '/voting/wishes' && $method === 'POST') {
         $member = $authService->requireMember();
         $body = $request->jsonBody();

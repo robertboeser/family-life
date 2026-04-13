@@ -2,8 +2,12 @@
     const authError = document.getElementById('authError');
     const votingSummary = document.getElementById('votingSummary');
     const votingBalance = document.getElementById('votingBalance');
+    const closeRoundInfo = document.getElementById('closeRoundInfo');
+    const closeRoundStatus = document.getElementById('closeRoundStatus');
+    const closeRoundBtn = document.getElementById('closeRoundBtn');
     const voteStatus = document.getElementById('voteStatus');
     const wishesContainer = document.getElementById('wishesContainer');
+    const winnersContainer = document.getElementById('winnersContainer');
     const showCreateWishBtn = document.getElementById('showCreateWishBtn');
     const createWishCard = document.getElementById('createWishCard');
     const createWishForm = document.getElementById('createWishForm');
@@ -13,6 +17,9 @@
     let hasOwnActiveWish = false;
     let currentRoundStatus = 'none';
     let currentAvailablePoints = 0;
+    let currentRoundId = null;
+    let currentCloseApprovals = 0;
+    let currentRequiredApprovals = 1;
 
     function showAuthError(message) {
         authError.textContent = message;
@@ -37,6 +44,16 @@
     function hideVoteStatus() {
         voteStatus.className = 'alert d-none mb-3';
         voteStatus.textContent = '';
+    }
+
+    function showCloseRoundStatus(message, type) {
+        closeRoundStatus.textContent = message;
+        closeRoundStatus.className = 'alert mb-0 alert-' + type;
+    }
+
+    function hideCloseRoundStatus() {
+        closeRoundStatus.className = 'alert d-none mb-0';
+        closeRoundStatus.textContent = '';
     }
 
     function setCreateBusy(isBusy) {
@@ -103,6 +120,38 @@
             + '</table>';
     }
 
+    function renderWinners(winners) {
+        if (!Array.isArray(winners) || winners.length === 0) {
+            winnersContainer.innerHTML = '<p class="text-muted mb-0">No winning wishes yet.</p>';
+            return;
+        }
+
+        const rows = winners.map(function (winner) {
+            return '<tr>'
+                + '<td>#' + winner.round_id + '</td>'
+                + '<td>' + escapeHtml(winner.wish_name) + '</td>'
+                + '<td>' + winner.wish_score + '</td>'
+                + '<td>' + escapeHtml(winner.winner_name) + '</td>'
+                + '</tr>';
+        }).join('');
+
+        winnersContainer.innerHTML = '<table class="table table-sm align-middle mb-0">'
+            + '<thead><tr><th>Round</th><th>Wish</th><th>Score</th><th>Winner</th></tr></thead>'
+            + '<tbody>' + rows + '</tbody>'
+            + '</table>';
+    }
+
+    function renderCloseRoundState() {
+        if (currentRoundStatus !== 'open' || currentRoundId === null) {
+            closeRoundInfo.textContent = 'No open round to close right now.';
+            closeRoundBtn.disabled = true;
+            return;
+        }
+
+        closeRoundInfo.textContent = 'Approvals: ' + currentCloseApprovals + ' / ' + currentRequiredApprovals;
+        closeRoundBtn.disabled = false;
+    }
+
     async function ensureOpenRound() {
         let round = await window.FamilyLifeAuth.api('/voting/rounds/current');
 
@@ -130,6 +179,9 @@
 
         const round = await ensureOpenRound();
         currentRoundStatus = round.status;
+        currentRoundId = round.id;
+        currentCloseApprovals = round.closure_approvals_count || 0;
+        currentRequiredApprovals = round.required_close_approvals || 1;
 
         const balance = await window.FamilyLifeAuth.api('/voting/balance');
         currentAvailablePoints = balance.available_points;
@@ -143,6 +195,11 @@
 
         const wishes = await window.FamilyLifeAuth.api('/voting/wishes');
         renderWishes(wishes);
+
+        const winners = await window.FamilyLifeAuth.api('/voting/winners');
+        renderWinners(winners);
+
+        renderCloseRoundState();
     }
 
     function init() {
@@ -167,8 +224,39 @@
 
     document.getElementById('refreshVotingBtn').addEventListener('click', function () {
         hideVoteStatus();
+        hideCloseRoundStatus();
         refreshVotingPage().catch(function (error) {
             showAuthError(error.message);
+        });
+    });
+
+    closeRoundBtn.addEventListener('click', function () {
+        if (currentRoundStatus !== 'open' || !currentRoundId) {
+            return;
+        }
+
+        closeRoundBtn.disabled = true;
+        closeRoundBtn.textContent = 'Submitting...';
+        hideCloseRoundStatus();
+
+        window.FamilyLifeAuth.api('/voting/rounds/' + currentRoundId + '/approve-close', {
+            method: 'POST'
+        }).then(function (result) {
+            if (result.status === 'closed') {
+                showCloseRoundStatus('Round closed. Winning wish: ' + result.closed_wish_name + '. A new round was created.', 'success');
+            } else {
+                showCloseRoundStatus(
+                    'Close approval recorded (' + result.approvals_count + ' / ' + (result.required_approvals || currentRequiredApprovals) + ').',
+                    'info'
+                );
+            }
+
+            return refreshVotingPage();
+        }).catch(function (error) {
+            showCloseRoundStatus(error.message, 'danger');
+        }).finally(function () {
+            closeRoundBtn.disabled = false;
+            closeRoundBtn.textContent = 'Approve Closing Round';
         });
     });
 
