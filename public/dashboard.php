@@ -38,6 +38,7 @@ $lang = uiLang($_SERVER);
                 <div class="d-flex align-items-center gap-2">
                     <a id="votingLink" href="/voting.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'voting') ?></a>
                     <a id="tasksLink" href="/tasks.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'tasks') ?></a>
+                    <a id="claimsLink" href="/claims.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'claims') ?></a>
                     <button id="copyLinkBtn" class="btn btn-sm btn-outline-secondary" type="button"><?= tp($lang, 'dashboard', 'copy_access_link') ?></button>
                     <a id="addMemberLink" href="/add-member.php" class="btn btn-sm btn-outline-primary"><?= tp($lang, 'dashboard', 'add_member') ?></a>
                 </div>
@@ -81,6 +82,18 @@ $lang = uiLang($_SERVER);
                     </div>
                     <div class="card-body">
                         <div id="scoreboardContainer" class="table-responsive"></div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12">
+                <section class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h2 class="h6 mb-0"><?= tp($lang, 'dashboard', 'last_winning_wishes') ?></h2>
+                        <button id="refreshWinnersBtn" class="btn btn-sm btn-outline-primary" type="button"><?= tp($lang, 'dashboard', 'refresh') ?></button>
+                    </div>
+                    <div class="card-body">
+                        <div id="winnersContainer" class="table-responsive"></div>
                     </div>
                 </section>
             </div>

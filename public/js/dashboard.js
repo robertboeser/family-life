@@ -8,6 +8,7 @@
     const submitClaimTaskBtn = document.getElementById('submitClaimTaskBtn');
     const claimsContainer = document.getElementById('claimsContainer');
     const scoreboardContainer = document.getElementById('scoreboardContainer');
+    const winnersContainer = document.getElementById('winnersContainer');
     let currentMemberId = null;
 
     function t(key, fallback) {
@@ -121,6 +122,28 @@
             + '</table>';
     }
 
+    function renderWinners(winners) {
+        if (!Array.isArray(winners) || winners.length === 0) {
+            winnersContainer.innerHTML = '<p class="text-muted mb-0">' + t('no_winning_wishes', 'No winning wishes yet.') + '</p>';
+            return;
+        }
+
+        const recentWinners = winners.slice(0, 3);
+        const rows = recentWinners.map(function (winner) {
+            return '<tr>'
+                + '<td>#' + winner.round_id + '</td>'
+                + '<td>' + escapeHtml(winner.wish_name) + '</td>'
+                + '<td>' + winner.wish_score + '</td>'
+                + '<td>' + escapeHtml(winner.winner_name) + '</td>'
+                + '</tr>';
+        }).join('');
+
+        winnersContainer.innerHTML = '<table class="table table-sm align-middle mb-0">'
+            + '<thead><tr><th>' + t('round', 'Round') + '</th><th>' + t('wish', 'Wish') + '</th><th>' + t('score', 'Score') + '</th><th>' + t('winner', 'Winner') + '</th></tr></thead>'
+            + '<tbody>' + rows + '</tbody>'
+            + '</table>';
+    }
+
     async function refreshDashboard() {
         const me = await window.FamilyLifeAuth.api('/me');
         currentMemberId = me.id;
@@ -129,6 +152,7 @@
         const token = window.FamilyLifeAuth.getToken();
         document.getElementById('votingLink').href = '/voting.php#token=' + encodeURIComponent(token);
         document.getElementById('tasksLink').href = '/tasks.php#token=' + encodeURIComponent(token);
+        document.getElementById('claimsLink').href = '/claims.php#token=' + encodeURIComponent(token);
         document.getElementById('addMemberLink').href = '/add-member.php#token=' + encodeURIComponent(token);
 
         const claims = await window.FamilyLifeAuth.api('/claims?status=pending');
@@ -139,6 +163,9 @@
 
         const scoreboard = await window.FamilyLifeAuth.api('/scoreboard');
         renderScoreboard(scoreboard);
+
+        const winners = await window.FamilyLifeAuth.api('/voting/winners');
+        renderWinners(winners);
     }
 
     function init() {
@@ -151,12 +178,14 @@
 
         document.getElementById('votingLink').href = '/voting.php#token=' + encodeURIComponent(token);
         document.getElementById('tasksLink').href = '/tasks.php#token=' + encodeURIComponent(token);
+        document.getElementById('claimsLink').href = '/claims.php#token=' + encodeURIComponent(token);
         document.getElementById('addMemberLink').href = '/add-member.php#token=' + encodeURIComponent(token);
 
         refreshDashboard().catch(function (error) {
             showAuthError(error.message);
             claimsContainer.innerHTML = '';
             scoreboardContainer.innerHTML = '';
+            winnersContainer.innerHTML = '';
         });
     }
 
@@ -245,6 +274,14 @@
     document.getElementById('refreshScoreboardBtn').addEventListener('click', function () {
         window.FamilyLifeAuth.api('/scoreboard')
             .then(renderScoreboard)
+            .catch(function (error) {
+                showAuthError(error.message);
+            });
+    });
+
+    document.getElementById('refreshWinnersBtn').addEventListener('click', function () {
+        window.FamilyLifeAuth.api('/voting/winners')
+            .then(renderWinners)
             .catch(function (error) {
                 showAuthError(error.message);
             });

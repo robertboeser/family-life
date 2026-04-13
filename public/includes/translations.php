@@ -23,6 +23,7 @@ return [
                 'loading_profile' => 'Loading profile...',
                 'voting' => 'Voting',
                 'tasks' => 'Tasks',
+                'claims' => 'Claims',
                 'copy_access_link' => 'Copy Access Link',
                 'add_member' => '+ Add Member',
                 'current_claims' => 'Current Claims',
@@ -32,7 +33,8 @@ return [
                 'select_task' => 'Select a task...',
                 'claim' => 'Claim',
                 'cancel' => 'Cancel',
-                'family_scoreboard' => 'Family Scoreboard'
+                'family_scoreboard' => 'Family Scoreboard',
+                'last_winning_wishes' => 'Last Winning Wishes'
             ],
             'add_member' => [
                 'title' => 'Family Life | Add Member',
@@ -59,6 +61,25 @@ return [
                 'points' => 'Points',
                 'cancel' => 'Cancel',
                 'all_family_tasks' => 'All Family Tasks',
+                'refresh' => 'Refresh'
+            ],
+            'claims' => [
+                'title' => 'Family Life | Claims',
+                'start_page' => 'Start Page',
+                'logout' => 'Logout',
+                'back_to_dashboard' => '<- Back to Dashboard',
+                'heading' => 'Family Claims',
+                'loading_family_info' => 'Loading family info...',
+                'filters' => 'Filters',
+                'member' => 'Member',
+                'all_members' => 'All members',
+                'status' => 'Status',
+                'status_all' => 'All statuses',
+                'status_pending' => 'Pending',
+                'status_approved' => 'Approved',
+                'status_rejected' => 'Rejected',
+                'apply_filters' => 'Apply Filters',
+                'all_claims' => 'All Claims',
                 'refresh' => 'Refresh'
             ],
             'voting' => [
@@ -151,7 +172,11 @@ return [
                 'task_claimed_success' => 'Task claimed successfully.',
                 'claim_status_pending' => 'pending',
                 'claim_status_approved' => 'approved',
-                'claim_status_rejected' => 'rejected'
+                'claim_status_rejected' => 'rejected',
+                'no_winning_wishes' => 'No winning wishes yet.',
+                'round' => 'Round',
+                'wish' => 'Wish',
+                'winner' => 'Winner'
             ],
             'tasks' => [
                 'locale' => 'en-US',
@@ -166,6 +191,21 @@ return [
                 'task_name_required' => 'Please provide a task name.',
                 'points_positive' => 'Points must be a positive number.',
                 'task_created_success' => 'Task created successfully.'
+            ],
+            'claims' => [
+                'locale' => 'en-US',
+                'unknown' => 'Unknown',
+                'status_pending' => 'Pending',
+                'status_approved' => 'Approved',
+                'status_rejected' => 'Rejected',
+                'all_members' => 'All members',
+                'no_claims' => 'No claims found for this filter.',
+                'member' => 'Member',
+                'task' => 'Task',
+                'points' => 'Points',
+                'status' => 'Status',
+                'created' => 'Created',
+                'claims_for' => 'Claims for '
             ],
             'voting' => [
                 'creating' => 'Creating...',
@@ -220,6 +260,7 @@ return [
                 'loading_profile' => 'Profil wird geladen...',
                 'voting' => 'Abstimmung',
                 'tasks' => 'Aufgaben',
+                'claims' => 'Ansprueche',
                 'copy_access_link' => 'Zugangslink kopieren',
                 'add_member' => '+ Mitglied hinzufuegen',
                 'current_claims' => 'Aktuelle Ansprueche',
@@ -229,7 +270,8 @@ return [
                 'select_task' => 'Aufgabe auswaehlen...',
                 'claim' => 'Beanspruchen',
                 'cancel' => 'Abbrechen',
-                'family_scoreboard' => 'Familien-Punktestand'
+                'family_scoreboard' => 'Familien-Punktestand',
+                'last_winning_wishes' => 'Letzte Gewinn-Wuensche'
             ],
             'add_member' => [
                 'title' => 'Family Life | Mitglied hinzufuegen',
@@ -256,6 +298,25 @@ return [
                 'points' => 'Punkte',
                 'cancel' => 'Abbrechen',
                 'all_family_tasks' => 'Alle Familienaufgaben',
+                'refresh' => 'Aktualisieren'
+            ],
+            'claims' => [
+                'title' => 'Family Life | Ansprueche',
+                'start_page' => 'Startseite',
+                'logout' => 'Abmelden',
+                'back_to_dashboard' => '<- Zurueck zum Dashboard',
+                'heading' => 'Familien-Ansprueche',
+                'loading_family_info' => 'Familieninformationen werden geladen...',
+                'filters' => 'Filter',
+                'member' => 'Mitglied',
+                'all_members' => 'Alle Mitglieder',
+                'status' => 'Status',
+                'status_all' => 'Alle Status',
+                'status_pending' => 'Offen',
+                'status_approved' => 'Bestaetigt',
+                'status_rejected' => 'Abgelehnt',
+                'apply_filters' => 'Filter anwenden',
+                'all_claims' => 'Alle Ansprueche',
                 'refresh' => 'Aktualisieren'
             ],
             'voting' => [
@@ -348,7 +409,11 @@ return [
                 'task_claimed_success' => 'Aufgabe erfolgreich beansprucht.',
                 'claim_status_pending' => 'offen',
                 'claim_status_approved' => 'bestaetigt',
-                'claim_status_rejected' => 'abgelehnt'
+                'claim_status_rejected' => 'abgelehnt',
+                'no_winning_wishes' => 'Noch keine gewinnenden Wuensche.',
+                'round' => 'Runde',
+                'wish' => 'Wunsch',
+                'winner' => 'Gewinner'
             ],
             'tasks' => [
                 'locale' => 'de-DE',
@@ -363,6 +428,21 @@ return [
                 'task_name_required' => 'Bitte einen Aufgabennamen eingeben.',
                 'points_positive' => 'Punkte muessen eine positive Zahl sein.',
                 'task_created_success' => 'Aufgabe erfolgreich erstellt.'
+            ],
+            'claims' => [
+                'locale' => 'de-DE',
+                'unknown' => 'Unbekannt',
+                'status_pending' => 'Offen',
+                'status_approved' => 'Bestaetigt',
+                'status_rejected' => 'Abgelehnt',
+                'all_members' => 'Alle Mitglieder',
+                'no_claims' => 'Keine Ansprueche fuer diesen Filter gefunden.',
+                'member' => 'Mitglied',
+                'task' => 'Aufgabe',
+                'points' => 'Punkte',
+                'status' => 'Status',
+                'created' => 'Erstellt',
+                'claims_for' => 'Ansprueche fuer '
             ],
             'voting' => [
                 'creating' => 'Wird erstellt...',

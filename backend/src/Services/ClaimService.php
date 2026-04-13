@@ -48,7 +48,7 @@ final class ClaimService
         return $claims;
     }
 
-    public function listForFamily(string $familyId, string $status): array
+    public function listForFamily(string $familyId, string $status, ?int $memberId = null): array
     {
         $allowed = ['pending', 'approved', 'rejected', 'all'];
         if (!in_array($status, $allowed, true)) {
@@ -68,12 +68,19 @@ final class ClaimService
             $query .= ' AND c.status = :status';
         }
 
+        if ($memberId !== null) {
+            $query .= ' AND c.claimed_by = :member_id';
+        }
+
         $query .= ' ORDER BY c.created_at DESC, c.id DESC';
 
         $stmt = $this->pdo->prepare($query);
         $params = [':family_id' => $familyId];
         if ($status !== 'all') {
             $params[':status'] = $status;
+        }
+        if ($memberId !== null) {
+            $params[':member_id'] = $memberId;
         }
         $stmt->execute($params);
 

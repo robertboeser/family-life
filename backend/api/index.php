@@ -120,9 +120,19 @@ try {
 
         if ($method === 'GET') {
             $status = strtolower((string)($_GET['status'] ?? 'all'));
+            $memberId = null;
+            $memberIdRaw = trim((string)($_GET['member_id'] ?? ''));
+
+            if ($memberIdRaw !== '') {
+                if (ctype_digit($memberIdRaw) && (int)$memberIdRaw > 0) {
+                    $memberId = (int)$memberIdRaw;
+                } else {
+                    $responder->send(['error' => 'Invalid member filter'], 422);
+                }
+            }
 
             try {
-                $payload = $claimService->listForFamily((string)$member['family_id'], $status);
+                $payload = $claimService->listForFamily((string)$member['family_id'], $status, $memberId);
                 $responder->send($payload);
             } catch (ApiException $exception) {
                 $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
