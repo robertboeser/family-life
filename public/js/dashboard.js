@@ -64,7 +64,7 @@
         const options = ['<option value="">' + t('select_task', 'Select a task...') + '</option>'];
 
         if (Array.isArray(tasks)) {
-            tasks.forEach(function (task) {
+            tasks.filter(function (task) { return !task.disabled; }).forEach(function (task) {
                 options.push(
                     '<option value="' + task.id + '">' + escapeHtml(task.name) + ' (' + task.points + ' ' + t('points_abbrev', 'pts') + ')</option>'
                 );

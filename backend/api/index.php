@@ -113,6 +113,19 @@ try {
         }
     }
 
+    if (preg_match('#^/tasks/(\d+)/(disable|enable)$#', $uri, $matches) === 1 && $method === 'PUT') {
+        $member = $authService->requireMember();
+        $taskId = (int)$matches[1];
+        $disabled = $matches[2] === 'disable';
+
+        try {
+            $payload = $taskService->setDisabled((string)$member['family_id'], (int)$member['id'], $taskId, $disabled);
+            $responder->send($payload);
+        } catch (ApiException $exception) {
+            $responder->send(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+    }
+
     if ($uri === '/claims/mine' && $method === 'GET') {
         $member = $authService->requireMember();
 

@@ -187,10 +187,16 @@ return [
                 'task' => 'Task',
                 'points' => 'Points',
                 'created' => 'Created',
+                'actions' => 'Actions',
+                'disabled_tasks' => 'Disabled Tasks',
+                'disable' => 'Disable',
+                'enable' => 'Enable',
                 'tasks_for' => 'Tasks for ',
                 'task_name_required' => 'Please provide a task name.',
                 'points_positive' => 'Points must be a positive number.',
-                'task_created_success' => 'Task created successfully.'
+                'task_created_success' => 'Task created successfully.',
+                'task_disabled_success' => 'Task disabled successfully.',
+                'task_enabled_success' => 'Task enabled successfully.'
             ],
             'claims' => [
                 'locale' => 'en-US',
@@ -424,10 +430,16 @@ return [
                 'task' => 'Aufgabe',
                 'points' => 'Punkte',
                 'created' => 'Erstellt',
+                'actions' => 'Aktionen',
+                'disabled_tasks' => 'Deaktivierte Aufgaben',
+                'disable' => 'Deaktivieren',
+                'enable' => 'Aktivieren',
                 'tasks_for' => 'Aufgaben fuer ',
                 'task_name_required' => 'Bitte einen Aufgabennamen eingeben.',
                 'points_positive' => 'Punkte muessen eine positive Zahl sein.',
-                'task_created_success' => 'Aufgabe erfolgreich erstellt.'
+                'task_created_success' => 'Aufgabe erfolgreich erstellt.',
+                'task_disabled_success' => 'Aufgabe erfolgreich deaktiviert.',
+                'task_enabled_success' => 'Aufgabe erfolgreich aktiviert.'
             ],
             'claims' => [
                 'locale' => 'de-DE',

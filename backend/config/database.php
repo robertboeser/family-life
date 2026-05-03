@@ -53,12 +53,22 @@ function initializeSchema(PDO $pdo): void
             name TEXT NOT NULL,
             points INTEGER NOT NULL,
             created_by INTEGER NOT NULL,
+            disabled INTEGER NOT NULL DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
             FOREIGN KEY (created_by) REFERENCES family_members(id) ON DELETE CASCADE
         )"
     );
+
+    // Migrate existing tasks table to add the disabled column if it does not exist yet.
+    $existingTaskColumns = array_column(
+        $pdo->query('PRAGMA table_info(tasks)')->fetchAll(PDO::FETCH_ASSOC),
+        'name'
+    );
+    if (!in_array('disabled', $existingTaskColumns, true)) {
+        $pdo->exec('ALTER TABLE tasks ADD COLUMN disabled INTEGER NOT NULL DEFAULT 0');
+    }
 
     $pdo->exec(
         "CREATE TABLE IF NOT EXISTS task_claims (

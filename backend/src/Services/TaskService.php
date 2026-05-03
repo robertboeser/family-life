@@ -17,7 +17,7 @@ final class TaskService
     public function listByFamily(string $familyId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, name, points, created_by, created_at
+            'SELECT id, name, points, created_by, disabled, created_at
              FROM tasks
              WHERE family_id = :family_id
              ORDER BY created_at DESC, id DESC'
@@ -31,6 +31,7 @@ final class TaskService
                 'name' => $row['name'],
                 'points' => (int)$row['points'],
                 'created_by' => (int)$row['created_by'],
+                'disabled' => (bool)$row['disabled'],
                 'created_at' => $row['created_at'],
             ];
         }
@@ -57,8 +58,40 @@ final class TaskService
             'name' => $name,
             'points' => $points,
             'created_by' => $memberId,
+            'disabled' => false,
             'created_at' => Clock::now(),
         ];
+    }
+
+    public function setDisabled(string $familyId, int $memberId, int $taskId, bool $disabled): array
+    {
+        $taskStmt = $this->pdo->prepare(
+            'SELECT id, family_id, created_by
+             FROM tasks
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $taskStmt->execute([':id' => $taskId]);
+        $task = $taskStmt->fetch();
+
+        if ($task === false || (string)$task['family_id'] !== $familyId) {
+            throw new ApiException('Task not found', 404);
+        }
+
+        if ((int)$task['created_by'] !== $memberId) {
+            throw new ApiException('Only the task creator can disable or enable this task', 403);
+        }
+
+        $stmt = $this->pdo->prepare(
+            'UPDATE tasks SET disabled = :disabled, updated_at = :now WHERE id = :id'
+        );
+        $stmt->execute([
+            ':disabled' => $disabled ? 1 : 0,
+            ':now' => Clock::now(),
+            ':id' => $taskId,
+        ]);
+
+        return ['success' => true];
     }
 
     public function delete(string $familyId, int $memberId, int $taskId): array

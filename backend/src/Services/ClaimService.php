@@ -104,12 +104,16 @@ final class ClaimService
 
     public function create(string $familyId, int $memberId, int $taskId): array
     {
-        $taskStmt = $this->pdo->prepare('SELECT id, family_id FROM tasks WHERE id = :id LIMIT 1');
+        $taskStmt = $this->pdo->prepare('SELECT id, family_id, disabled FROM tasks WHERE id = :id LIMIT 1');
         $taskStmt->execute([':id' => $taskId]);
         $task = $taskStmt->fetch();
 
         if ($task === false || (string)$task['family_id'] !== $familyId) {
             throw new ApiException('Task not found', 404);
+        }
+
+        if ((bool)$task['disabled']) {
+            throw new ApiException('Task is disabled and cannot be claimed', 422);
         }
 
         $stmt = $this->pdo->prepare(

@@ -69,6 +69,7 @@ $lang = uiLang($_SERVER);
                 <button id="refreshTasksBtn" class="btn btn-sm btn-outline-primary" type="button"><?= tp($lang, 'tasks', 'refresh') ?></button>
             </div>
             <div class="card-body">
+                <div id="taskActionStatus" class="alert d-none mb-3" role="alert"></div>
                 <div id="tasksContainer" class="table-responsive"></div>
             </div>
         </section>

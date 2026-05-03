@@ -8,6 +8,8 @@
     const createTaskForm = document.getElementById('createTaskForm');
     const createTaskSubmitBtn = document.getElementById('createTaskSubmitBtn');
     const status = document.getElementById('status');
+    const taskActionStatus = document.getElementById('taskActionStatus');
+    let currentMemberId = null;
 
     function t(key, fallback) {
         return Object.prototype.hasOwnProperty.call(i18n, key) ? i18n[key] : fallback;
@@ -26,6 +28,11 @@
     function hideStatus() {
         status.className = 'alert d-none mt-3 mb-0';
         status.textContent = '';
+    }
+
+    function showTaskActionStatus(message, type) {
+        taskActionStatus.textContent = message;
+        taskActionStatus.className = 'alert mb-3 alert-' + type;
     }
 
     function setCreateBusy(isBusy) {
@@ -55,25 +62,66 @@
         return date.toLocaleString(locale);
     }
 
+    function buildTaskRow(task, isDisabled) {
+        const isCreator = currentMemberId !== null && task.created_by === currentMemberId;
+        let actionCell;
+
+        if (isCreator) {
+            if (isDisabled) {
+                actionCell = '<button class="btn btn-sm btn-outline-success" type="button" data-enable-task-id="' + task.id + '">'
+                    + t('enable', 'Enable')
+                    + '</button>';
+            } else {
+                actionCell = '<button class="btn btn-sm btn-outline-secondary" type="button" data-disable-task-id="' + task.id + '">'
+                    + t('disable', 'Disable')
+                    + '</button>';
+            }
+        } else {
+            actionCell = '';
+        }
+
+        return '<tr>'
+            + '<td>#' + task.id + '</td>'
+            + '<td>' + escapeHtml(task.name) + '</td>'
+            + '<td>' + task.points + '</td>'
+            + '<td>' + escapeHtml(formatDate(task.created_at)) + '</td>'
+            + '<td>' + actionCell + '</td>'
+            + '</tr>';
+    }
+
     function renderTasks(tasks) {
         if (!Array.isArray(tasks) || tasks.length === 0) {
             tasksContainer.innerHTML = '<p class="text-muted mb-0">' + t('no_tasks', 'No tasks yet.') + '</p>';
             return;
         }
 
-        const rows = tasks.map(function (task) {
-            return '<tr>'
-                + '<td>#' + task.id + '</td>'
-                + '<td>' + escapeHtml(task.name) + '</td>'
-                + '<td>' + task.points + '</td>'
-                + '<td>' + escapeHtml(formatDate(task.created_at)) + '</td>'
-                + '</tr>';
-        }).join('');
+        const activeTasks = tasks.filter(function (task) { return !task.disabled; });
+        const disabledTasks = tasks.filter(function (task) { return task.disabled; });
 
-        tasksContainer.innerHTML = '<table class="table table-sm align-middle mb-0">'
-            + '<thead><tr><th>ID</th><th>' + t('task', 'Task') + '</th><th>' + t('points', 'Points') + '</th><th>' + t('created', 'Created') + '</th></tr></thead>'
-            + '<tbody>' + rows + '</tbody>'
-            + '</table>';
+        const headerRow = '<thead><tr>'
+            + '<th>ID</th>'
+            + '<th>' + t('task', 'Task') + '</th>'
+            + '<th>' + t('points', 'Points') + '</th>'
+            + '<th>' + t('created', 'Created') + '</th>'
+            + '<th>' + t('actions', 'Actions') + '</th>'
+            + '</tr></thead>';
+
+        let html = '';
+
+        if (activeTasks.length === 0) {
+            html += '<p class="text-muted mb-0">' + t('no_tasks', 'No tasks yet.') + '</p>';
+        } else {
+            const activeRows = activeTasks.map(function (task) { return buildTaskRow(task, false); }).join('');
+            html += '<table class="table table-sm align-middle mb-0">' + headerRow + '<tbody>' + activeRows + '</tbody></table>';
+        }
+
+        if (disabledTasks.length > 0) {
+            const disabledRows = disabledTasks.map(function (task) { return buildTaskRow(task, true); }).join('');
+            html += '<h6 class="mt-4 mb-2 text-muted">' + t('disabled_tasks', 'Disabled Tasks') + '</h6>'
+                + '<table class="table table-sm align-middle mb-0 text-muted">' + headerRow + '<tbody>' + disabledRows + '</tbody></table>';
+        }
+
+        tasksContainer.innerHTML = html;
     }
 
     async function loadTasks() {
@@ -106,6 +154,7 @@
 
         try {
             const me = await window.FamilyLifeAuth.api('/me');
+            currentMemberId = me.id;
             familyInfo.textContent = t('tasks_for', 'Tasks for ') + me.family_name;
             await loadTasks();
         } catch (error) {
@@ -130,6 +179,39 @@
 
     document.getElementById('cancelCreateTaskBtn').addEventListener('click', function () {
         closeCreateTask();
+    });
+
+    tasksContainer.addEventListener('click', function (event) {
+        const disableBtn = event.target.closest('[data-disable-task-id]');
+        if (disableBtn) {
+            const taskId = disableBtn.getAttribute('data-disable-task-id');
+            disableBtn.disabled = true;
+            window.FamilyLifeAuth.api('/tasks/' + taskId + '/disable', { method: 'PUT' })
+                .then(function () {
+                    showTaskActionStatus(t('task_disabled_success', 'Task disabled successfully.'), 'success');
+                    return loadTasks();
+                })
+                .catch(function (error) {
+                    showTaskActionStatus(error.message, 'danger');
+                    disableBtn.disabled = false;
+                });
+            return;
+        }
+
+        const enableBtn = event.target.closest('[data-enable-task-id]');
+        if (enableBtn) {
+            const taskId = enableBtn.getAttribute('data-enable-task-id');
+            enableBtn.disabled = true;
+            window.FamilyLifeAuth.api('/tasks/' + taskId + '/enable', { method: 'PUT' })
+                .then(function () {
+                    showTaskActionStatus(t('task_enabled_success', 'Task enabled successfully.'), 'success');
+                    return loadTasks();
+                })
+                .catch(function (error) {
+                    showTaskActionStatus(error.message, 'danger');
+                    enableBtn.disabled = false;
+                });
+        }
     });
 
     createTaskForm.addEventListener('submit', function (event) {
