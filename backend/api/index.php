@@ -37,11 +37,15 @@ $familyService = new FamilyService($pdo, $rankService);
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 
-if (str_starts_with($uri, '/api.php')) {
-    $uri = substr($uri, strlen('/api.php'));
-} elseif (str_starts_with($uri, '/api')) {
-    // Keep compatibility with earlier /api/... style URLs.
-    $uri = substr($uri, strlen('/api'));
+$apiPhpPosition = strpos($uri, '/api.php');
+if ($apiPhpPosition !== false) {
+    $uri = substr($uri, $apiPhpPosition + strlen('/api.php'));
+} else {
+    $apiPosition = strpos($uri, '/api');
+    if ($apiPosition !== false) {
+        // Keep compatibility with earlier /api/... style URLs.
+        $uri = substr($uri, $apiPosition + strlen('/api'));
+    }
 }
 $uri = '/' . trim($uri, '/');
 

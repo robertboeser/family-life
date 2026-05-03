@@ -13,14 +13,14 @@ $lang = uiLang($_SERVER);
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title><?= tp($lang, 'claims', 'title') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/member.css">
+    <link rel="stylesheet" href="css/member.css">
 </head>
 <body>
     <nav class="navbar navbar-expand bg-white border-bottom sticky-top">
         <div class="container">
             <span class="navbar-brand fw-semibold">Family Life</span>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <a href="/index.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'claims', 'start_page') ?></a>
+                <a href="index.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'claims', 'start_page') ?></a>
                 <button id="logoutBtn" class="btn btn-sm btn-outline-danger" type="button"><?= tp($lang, 'claims', 'logout') ?></button>
             </div>
         </div>
@@ -32,7 +32,7 @@ $lang = uiLang($_SERVER);
         <section class="card shadow-sm mb-4">
             <div class="card-body d-flex justify-content-between align-items-start gap-3 flex-wrap">
                 <div>
-                    <a id="backBtn" href="/dashboard.php" class="btn btn-sm btn-outline-secondary mb-3"><?= tp($lang, 'claims', 'back_to_dashboard') ?></a>
+                    <a id="backBtn" href="dashboard.php" class="btn btn-sm btn-outline-secondary mb-3"><?= tp($lang, 'claims', 'back_to_dashboard') ?></a>
                     <h1 class="h4 mb-2"><?= tp($lang, 'claims', 'heading') ?></h1>
                     <p id="familyInfo" class="mb-0 text-muted"><?= tp($lang, 'claims', 'loading_family_info') ?></p>
                 </div>
@@ -78,8 +78,8 @@ $lang = uiLang($_SERVER);
         </section>
     </main>
 
-    <script src="/js/auth.js" defer></script>
+    <script src="js/auth.js" defer></script>
     <script>window.FamilyLifeTranslations = <?= json_encode(tj($lang, 'claims'), JSON_UNESCAPED_SLASHES) ?>;</script>
-    <script src="/js/claims.js" defer></script>
+    <script src="js/claims.js" defer></script>
 </body>
 </html>

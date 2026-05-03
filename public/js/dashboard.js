@@ -150,10 +150,10 @@
         memberSummary.textContent = me.name + t('member_summary_join', ' in ') + me.family_name;
 
         const token = window.FamilyLifeAuth.getToken();
-        document.getElementById('votingLink').href = '/voting.php#token=' + encodeURIComponent(token);
-        document.getElementById('tasksLink').href = '/tasks.php#token=' + encodeURIComponent(token);
-        document.getElementById('claimsLink').href = '/claims.php#token=' + encodeURIComponent(token);
-        document.getElementById('addMemberLink').href = '/add-member.php#token=' + encodeURIComponent(token);
+        document.getElementById('votingLink').href = 'voting.php#token=' + encodeURIComponent(token);
+        document.getElementById('tasksLink').href = 'tasks.php#token=' + encodeURIComponent(token);
+        document.getElementById('claimsLink').href = 'claims.php#token=' + encodeURIComponent(token);
+        document.getElementById('addMemberLink').href = 'add-member.php#token=' + encodeURIComponent(token);
 
         const claims = await window.FamilyLifeAuth.api('/claims?status=pending');
         renderClaims(claims);
@@ -172,14 +172,14 @@
         const token = window.FamilyLifeAuth.getToken();
         if (!token) {
             showAuthError(t('login_required_long', 'Login required. Use a member token in the URL hash (#token=...) or create a family on the start page.'));
-            window.location.href = '/index.php';
+            window.location.href = 'index.php';
             return;
         }
 
-        document.getElementById('votingLink').href = '/voting.php#token=' + encodeURIComponent(token);
-        document.getElementById('tasksLink').href = '/tasks.php#token=' + encodeURIComponent(token);
-        document.getElementById('claimsLink').href = '/claims.php#token=' + encodeURIComponent(token);
-        document.getElementById('addMemberLink').href = '/add-member.php#token=' + encodeURIComponent(token);
+        document.getElementById('votingLink').href = 'voting.php#token=' + encodeURIComponent(token);
+        document.getElementById('tasksLink').href = 'tasks.php#token=' + encodeURIComponent(token);
+        document.getElementById('claimsLink').href = 'claims.php#token=' + encodeURIComponent(token);
+        document.getElementById('addMemberLink').href = 'add-member.php#token=' + encodeURIComponent(token);
 
         refreshDashboard().catch(function (error) {
             showAuthError(error.message);
@@ -288,12 +288,12 @@
     });
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
-        window.location.href = '/index.php';
+        window.location.href = 'index.php';
     });
 
     document.getElementById('copyLinkBtn').addEventListener('click', function () {
         const token = window.FamilyLifeAuth.getToken();
-        const dashboardUrl = window.location.origin + '/dashboard.php#token=' + encodeURIComponent(token);
+        const dashboardUrl = new URL('dashboard.php#token=' + encodeURIComponent(token), window.location.href).toString();
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(dashboardUrl).catch(function () {

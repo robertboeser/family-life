@@ -98,11 +98,11 @@
         const token = window.FamilyLifeAuth.getToken();
         if (!token) {
             showAuthError(t('login_required_long', 'Login required. Use a member token in the URL hash (#token=...) or create a family on the start page.'));
-            window.location.href = '/index.php';
+            window.location.href = 'index.php';
             return;
         }
 
-        document.getElementById('backBtn').href = '/dashboard.php#token=' + encodeURIComponent(token);
+        document.getElementById('backBtn').href = 'dashboard.php#token=' + encodeURIComponent(token);
 
         try {
             const me = await window.FamilyLifeAuth.api('/me');
@@ -115,7 +115,7 @@
     }
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
-        window.location.href = '/index.php';
+        window.location.href = 'index.php';
     });
 
     document.getElementById('refreshTasksBtn').addEventListener('click', function () {

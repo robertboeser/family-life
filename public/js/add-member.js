@@ -23,17 +23,17 @@
         const token = window.FamilyLifeAuth.getToken();
         if (!token) {
             showStatus(t('login_required_short', 'Login required. Use a member token in the URL hash (#token=...).'), 'warning');
-            window.location.href = '/index.php';
+            window.location.href = 'index.php';
             return;
         }
 
         // Set up back/cancel button to maintain token
         const cancelBtn = document.getElementById('cancelBtn');
         if (cancelBtn) {
-            cancelBtn.href = '/dashboard.php#token=' + encodeURIComponent(token);
+            cancelBtn.href = 'dashboard.php#token=' + encodeURIComponent(token);
         }
 
-        document.getElementById('backBtn').href = '/dashboard.php#token=' + encodeURIComponent(token);
+        document.getElementById('backBtn').href = 'dashboard.php#token=' + encodeURIComponent(token);
 
         try {
             const me = await window.FamilyLifeAuth.api('/me');
@@ -67,7 +67,7 @@
 
             showStatus(t('member_added_redirect', 'Member added successfully! Redirecting to dashboard...'), 'success');
             setTimeout(function () {
-                window.location.href = '/dashboard.php#token=' + encodeURIComponent(newMember.auth_token);
+                window.location.href = 'dashboard.php#token=' + encodeURIComponent(newMember.auth_token);
             }, 1000);
         } catch (error) {
             showStatus(error.message, 'danger');
@@ -76,7 +76,7 @@
     });
 
     document.getElementById('logoutBtn').addEventListener('click', function () {
-        window.location.href = '/index.php';
+        window.location.href = 'index.php';
     });
 
     initPage();

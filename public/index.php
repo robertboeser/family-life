@@ -13,7 +13,7 @@ $lang = uiLang($_SERVER);
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title><?= tp($lang, 'index', 'title') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/member.css">
+    <link rel="stylesheet" href="css/member.css">
 </head>
 <body>
     <main class="container py-5">
@@ -40,7 +40,7 @@ $lang = uiLang($_SERVER);
                             </div>
                             <div class="col-12 d-flex flex-column flex-md-row gap-2">
                                 <button id="submitBtn" class="btn btn-primary" type="submit"><?= tp($lang, 'index', 'create_family_member_btn') ?></button>
-                                <a href="/dashboard.php" class="btn btn-outline-secondary"><?= tp($lang, 'index', 'open_dashboard_btn') ?></a>
+                                <a href="dashboard.php" class="btn btn-outline-secondary"><?= tp($lang, 'index', 'open_dashboard_btn') ?></a>
                             </div>
                         </form>
 
@@ -51,8 +51,8 @@ $lang = uiLang($_SERVER);
         </div>
     </main>
 
-    <script src="/js/auth.js" defer></script>
+    <script src="js/auth.js" defer></script>
     <script>window.FamilyLifeTranslations = <?= json_encode(tj($lang, 'index'), JSON_UNESCAPED_SLASHES) ?>;</script>
-    <script src="/js/index.js" defer></script>
+    <script src="js/index.js" defer></script>
 </body>
 </html>

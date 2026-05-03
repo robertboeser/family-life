@@ -13,14 +13,14 @@ $lang = uiLang($_SERVER);
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title><?= tp($lang, 'dashboard', 'title') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/member.css">
+    <link rel="stylesheet" href="css/member.css">
 </head>
 <body>
     <nav class="navbar navbar-expand bg-white border-bottom sticky-top">
         <div class="container">
             <span class="navbar-brand fw-semibold">Family Life</span>
             <div class="ms-auto d-flex align-items-center gap-2">
-                <a href="/index.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'start_page') ?></a>
+                <a href="index.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'start_page') ?></a>
                 <button id="logoutBtn" class="btn btn-sm btn-outline-danger" type="button"><?= tp($lang, 'dashboard', 'logout') ?></button>
             </div>
         </div>
@@ -36,11 +36,11 @@ $lang = uiLang($_SERVER);
                     <p id="memberSummary" class="mb-0 text-muted"><?= tp($lang, 'dashboard', 'loading_profile') ?></p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <a id="votingLink" href="/voting.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'voting') ?></a>
-                    <a id="tasksLink" href="/tasks.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'tasks') ?></a>
-                    <a id="claimsLink" href="/claims.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'claims') ?></a>
+                    <a id="votingLink" href="voting.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'voting') ?></a>
+                    <a id="tasksLink" href="tasks.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'tasks') ?></a>
+                    <a id="claimsLink" href="claims.php" class="btn btn-sm btn-outline-secondary"><?= tp($lang, 'dashboard', 'claims') ?></a>
                     <button id="copyLinkBtn" class="btn btn-sm btn-outline-secondary" type="button"><?= tp($lang, 'dashboard', 'copy_access_link') ?></button>
-                    <a id="addMemberLink" href="/add-member.php" class="btn btn-sm btn-outline-primary"><?= tp($lang, 'dashboard', 'add_member') ?></a>
+                    <a id="addMemberLink" href="add-member.php" class="btn btn-sm btn-outline-primary"><?= tp($lang, 'dashboard', 'add_member') ?></a>
                 </div>
             </div>
         </section>
@@ -100,8 +100,8 @@ $lang = uiLang($_SERVER);
         </div>
     </main>
 
-    <script src="/js/auth.js" defer></script>
+    <script src="js/auth.js" defer></script>
     <script>window.FamilyLifeTranslations = <?= json_encode(tj($lang, 'dashboard'), JSON_UNESCAPED_SLASHES) ?>;</script>
-    <script src="/js/dashboard.js" defer></script>
+    <script src="js/dashboard.js" defer></script>
 </body>
 </html>

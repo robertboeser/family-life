@@ -42,7 +42,7 @@
                 body: JSON.stringify({ name: memberName })
             });
 
-            window.location.href = '/dashboard.php#token=' + encodeURIComponent(member.auth_token);
+            window.location.href = 'dashboard.php#token=' + encodeURIComponent(member.auth_token);
         } catch (error) {
             showStatus(error.message, 'danger');
             setBusy(false);

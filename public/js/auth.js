@@ -17,7 +17,7 @@
         const cleanPath = (rawPath || '/').replace(/\/+$/, '') || '/';
         const query = rawQuery ? '?' + rawQuery : '';
 
-        return '/api.php' + cleanPath + query;
+        return 'api.php' + cleanPath + query;
     }
 
     async function api(path, options) {
